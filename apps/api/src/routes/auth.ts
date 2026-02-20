@@ -19,7 +19,7 @@ const cookieOptions = {
 // 1. Redirect to GitHub for Authentication
 authRouter.get("/github", (_req: Request, res: Response) => {
   const githubAuthUrl = new URL("https://github.com/login/oauth/authorize");
-  githubAuthUrl.searchParams.set("client_id", env.GITHUB_APP_ID);
+  githubAuthUrl.searchParams.set("client_id", env.GITHUB_CLIENT_ID);
   
   // Note: For a standard GitHub App (not an OAuth app), you usually don't 
   // request specific scopes because the app permissions are configured on GitHub.
@@ -36,14 +36,6 @@ authRouter.get("/github/callback", async (req: Request, res: Response) => {
   }
 
   try {
-    // We need GITHUB_CLIENT_SECRET which we'll add to env.ts
-    // For now, if it's missing, this will fail gracefully or we need to ensure it's in the env
-    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
-    
-    if (!clientSecret) {
-      throw new Error("GITHUB_CLIENT_SECRET is not configured");
-    }
-
     // Exchange code for Access Token
     const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
       method: "POST",
@@ -52,8 +44,8 @@ authRouter.get("/github/callback", async (req: Request, res: Response) => {
         Accept: "application/json",
       },
       body: JSON.stringify({
-        client_id: env.GITHUB_APP_ID,
-        client_secret: clientSecret,
+        client_id: env.GITHUB_CLIENT_ID,
+        client_secret: env.GITHUB_CLIENT_SECRET,
         code,
       }),
     });
