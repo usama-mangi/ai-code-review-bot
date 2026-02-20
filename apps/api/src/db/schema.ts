@@ -9,6 +9,27 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
+// ─── Users & Sessions ────────────────────────────────────────────────────────
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  githubId: bigint("github_id", { mode: "number" }).notNull().unique(),
+  username: text("username").notNull(),
+  avatarUrl: text("avatar_url"),
+  email: text("email"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const sessions = pgTable("sessions", {
+  id: text("id").primaryKey(), // Session token
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+
 // ─── Repositories ────────────────────────────────────────────────────────────
 
 export const repositories = pgTable("repositories", {
@@ -93,6 +114,17 @@ export const commentsRelations = relations(comments, ({ one }) => ({
   }),
 }));
 
+export const usersRelations = relations(users, ({ many }) => ({
+  sessions: many(sessions),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Repository = typeof repositories.$inferSelect;
@@ -101,3 +133,7 @@ export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
 export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;

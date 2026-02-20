@@ -7,7 +7,10 @@ import { logger } from "./config/logger.js";
 import { checkDbConnection } from "./db/index.js";
 import { webhookRouter } from "./routes/webhook.route.js";
 import { reviewsRouter } from "./routes/reviews.route.js";
+import { authRouter } from "./routes/auth.js";
+import { requireAuth } from "./auth.middleware.js";
 import { startWorker } from "./queue/worker.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -52,6 +55,7 @@ app.use(
 );
 
 app.use("/api", express.json());
+app.use("/api", cookieParser());
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
@@ -60,7 +64,16 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/webhook", webhookLimiter, webhookRouter);
-app.use("/api/reviews", apiLimiter, reviewsRouter);
+
+// Auth Routes (Open to public for auth, unprotected)
+app.use("/api/auth", apiLimiter, authRouter);
+// Protect the 'me' route natively here instead of inside the router for better visibility
+authRouter.get("/me", requireAuth, async (req, res) => {
+  res.json(req.user);
+});
+
+// Protect reviews with authentication
+app.use("/api/reviews", apiLimiter, requireAuth, reviewsRouter);
 
 // ─── Error Handler ────────────────────────────────────────────────────────────
 
