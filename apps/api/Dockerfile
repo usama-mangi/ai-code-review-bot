@@ -7,7 +7,6 @@ RUN bun install --frozen-lockfile
 
 # Copy source
 COPY src/ ./src/
-COPY drizzle/ ./drizzle/
 COPY tsconfig.json drizzle.config.ts ./
 
 EXPOSE 3000
