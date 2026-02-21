@@ -14,6 +14,9 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
+// Trust the Nginx reverse proxy to correctly pass the client IP in X-Forwarded-For
+app.set("trust proxy", 1);
+
 // ─── Security Middleware ──────────────────────────────────────────────────────
 
 app.use(helmet());
