@@ -81,13 +81,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy compose file to VM
+      - name: Create .env.prod file
+        run: |
+          cat > .env.prod << 'EOF'
+          DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          IMAGE_TAG="${{ github.sha }}"
+          POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
+          POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
+          POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
+          GITHUB_APP_ID="${{ secrets.GH_APP_ID }}"
+          GITHUB_APP_PRIVATE_KEY="${{ secrets.GH_APP_PRIVATE_KEY }}"
+          GITHUB_WEBHOOK_SECRET="${{ secrets.GH_WEBHOOK_SECRET }}"
+          GITHUB_CLIENT_ID="${{ secrets.GH_CLIENT_ID }}"
+          GITHUB_CLIENT_SECRET="${{ secrets.GH_CLIENT_SECRET }}"
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          OPENAI_BASE_URL="${{ secrets.OPENAI_BASE_URL }}"
+          OPENAI_MODEL="${{ secrets.OPENAI_MODEL }}"
+          FRONTEND_URL="${{ secrets.FRONTEND_URL }}"
+          DATABASE_URL="postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}"
+          REDIS_URL="redis://redis:6379"
+          PORT="3000"
+          NODE_ENV="production"
+          EOF
+
+      - name: Copy files to VM
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.prod.yml"
+          source: "docker-compose.prod.yml,.env.prod"
           target: "/opt/codereview"
 
       - name: Deploy on Azure VM
@@ -100,23 +123,8 @@ jobs:
             set -e
             cd /opt/codereview
 
-            # Write .env from GitHub Secrets
-            cat > .env << 'EOF'
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            IMAGE_TAG=${{ github.sha }}
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-            GITHUB_APP_ID=${{ secrets.GH_APP_ID }}
-            GITHUB_APP_PRIVATE_KEY=${{ secrets.GH_APP_PRIVATE_KEY }}
-            GITHUB_WEBHOOK_SECRET=${{ secrets.GH_WEBHOOK_SECRET }}
-            GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
-            GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}
-            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-            OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
-            OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
-            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-            EOF
+            # Rename .env.prod to .env for Docker Compose
+            mv .env.prod .env
 
             # Pull new images
             docker compose -f docker-compose.prod.yml pull
