@@ -1,155 +1,68 @@
 # 🤖 AI Code Review Bot
 
-An automated GitHub App that reviews pull requests using **GPT-4o**. It analyzes code diffs, flags bugs, suggests improvements, and posts inline comments — just like a senior engineer would.
+## 📖 Introduction
 
-## Stack
+An automated, AI-powered GitHub App designed to seamlessly integrate into the software development lifecycle (SDLC) as an intelligent code quality gatekeeper. It reviews pull requests using **Kimi-K2**, analyzing code diffs, flagging bugs, suggesting improvements, and posting inline comments. Designed with a strong DevOps focus, this system streamlines continuous integration by providing immediate, automated feedback before human review begins.
 
-| Layer     | Tech                       |
-| --------- | -------------------------- |
-| Runtime   | Bun.js                     |
-| Framework | Express.js + TypeScript    |
-| Database  | PostgreSQL (Drizzle ORM)   |
-| Queue     | BullMQ + Redis             |
-| AI        | OpenAI GPT-4o              |
-| Auth      | GitHub App JWT             |
-| Frontend  | React + Vite + TailwindCSS |
+## 🏗️ Architecture
 
-## Quick Start
+The architecture is container-first and optimized for scalable deployment, observability, and automated CI/CD pipelines.
 
-### 1. Prerequisites
-
-- [Bun](https://bun.sh) installed
-- Docker + Docker Compose
-- A [GitHub App](https://github.com/settings/apps/new) created
-
-### 2. Create GitHub App
-
-Go to **GitHub → Settings → Developer Settings → GitHub Apps → New GitHub App**:
-
-- **Webhook URL**: Your ngrok URL + `/api/webhook`
-- **Webhook secret**: Any random string
-- **Permissions**:
-  - `Pull requests`: Read & Write
-  - `Contents`: Read-only
-- **Subscribe to events**: `Pull request`
-- Generate and download a **private key** (PEM file)
-
-### 3. Configure Environment
-
-```bash
-cp .env.example apps/api/.env
+```mermaid
+graph TD
+    A[Developer] -->|Opens/Updates PR| B(GitHub)
+    B -->|Webhook Event| C[Nginx Reverse Proxy]
+    C -->|Routes Traffic| D[API Service Express.js]
+    D -->|Validates & Enqueues Job| E[(Redis + BullMQ)]
+    E -->|Picks up Job| F[AI Worker]
+    F -->|Fetches PR Diff| B
+    F -->|Queries Model| G[Kimi-K2 System]
+    G -->|Structured JSON Feedback| F
+    F -->|Posts Inline Comments| B
+    F -->|Persists Review Data| H[(PostgreSQL)]
+    H -->|Surfaces Metrics| I[React Dashboard]
 ```
 
-Fill in `apps/api/.env`:
+### Infrastructure & Deployment
 
-```bash
-GITHUB_APP_ID=123456
-GITHUB_APP_PRIVATE_KEY=$(base64 -w 0 your-app.private-key.pem)
-GITHUB_WEBHOOK_SECRET=your-webhook-secret
-OPENAI_API_KEY=sk-...
-DATABASE_URL=postgresql://codereview:codereview_secret@localhost:5432/codereview
-REDIS_URL=redis://localhost:6379
-```
+- **Containerization**: The entire ecosystem (API, Web Dashboard, PostgreSQL, Redis, and message workers) is containerized using **Docker** and orchestrated natively via **Docker Compose**.
+- **Hosting Layer**: Deployed on an **Azure Virtual Machine** running Linux.
+- **Reverse Proxy & Traffic Routing**: **Nginx** handles incoming web traffic, SSL termination, and securely routes API requests while serving the frontend dashboard.
+- **Continuous Integration & Deployment (CI/CD)**: Fully automated deployment pipeline driven by **GitHub Actions**. Code merges to the main branch trigger tests, container image builds, and automated rolling deployments to the Azure VM environment.
 
-### 4. Start Infrastructure
+### Application Flow
 
-```bash
-docker compose up -d
-```
+1. **Trigger**: Developer opens or updates a Pull Request.
+2. **Event Ingestion**: GitHub fires a webhook event. Nginx securely routes this traffic to the internal Express backend.
+3. **Queueing & Async Processing**: The payload signature is validated, and the review task is offloaded to a **Redis**-backed **BullMQ** queue for asynchronous, resilient processing.
+4. **AI Worker**: A scalable background worker picks up the job, fetches the PR diff via the GitHub API, parses unified diffs into context chunks, and queries the **Kimi-K2** model.
+5. **Feedback Loop**: The worker receives structured JSON feedback and leverages the GitHub API to post inline review comments directly on the PR.
+6. **Observability**: Review data, metrics, and severity stats are persisted in **PostgreSQL** and surfaced via the React dashboard for monitoring.
 
-### 5. Run Database Migrations
+## 🛠️ Tech Stack
 
-```bash
-cd apps/api
-bun run db:push
-```
+Optimized for high-performance execution, reliable containerization, and automated deployments.
 
-### 6. Start the API
+### DevOps & Infrastructure
 
-```bash
-cd apps/api
-bun run dev
-```
+- **Cloud Provider**: Azure (Virtual Machines)
+- **Containerization**: Docker, Docker Compose
+- **Web Server / Proxy**: Nginx
+- **CI/CD**: GitHub Actions
 
-### 7. Expose Webhook (for local dev)
+### Backend Platform
 
-```bash
-ngrok http 3000
-```
+- **Runtime Environment**: Bun.js
+- **Framework**: Express.js + TypeScript
+- **Database**: PostgreSQL (Managed via Drizzle ORM)
+- **Message Broker & Queue**: Redis + BullMQ
 
-Copy the ngrok URL and update your GitHub App's webhook URL to `https://<ngrok-id>.ngrok.io/api/webhook`.
+### AI & External Integrations
 
-### 8. Start the Dashboard
+- **AI Model**: Moonshot Kimi-K2
+- **Source Control & Auth**: GitHub App JWT, GitHub API Webhooks
 
-```bash
-cd apps/web
-bun run dev
-```
+### Frontend Observability Dashboard
 
-Open [http://localhost:5173](http://localhost:5173)
-
-### 9. Install the App
-
-Go to your GitHub App's page and install it on a repository. Then open a pull request — the bot will review it within ~30 seconds!
-
-## How It Works
-
-```
-PR Opened/Updated
-      ↓
-GitHub Webhook → POST /api/webhook
-      ↓
-Verify HMAC signature
-      ↓
-Create review record (DB) + Enqueue BullMQ job
-      ↓ (async)
-Worker: Fetch PR diff via GitHub API
-      ↓
-Parse unified diff → structured chunks
-      ↓
-Send to GPT-4o → structured JSON feedback
-      ↓
-Post inline review comments via GitHub API
-      ↓
-Save comments to PostgreSQL
-      ↓
-Dashboard shows review history + stats
-```
-
-## API Endpoints
-
-| Method | Path                         | Description              |
-| ------ | ---------------------------- | ------------------------ |
-| `POST` | `/api/webhook`               | GitHub webhook receiver  |
-| `GET`  | `/api/reviews`               | Paginated review list    |
-| `GET`  | `/api/reviews/:id`           | Review detail + comments |
-| `GET`  | `/api/reviews/stats/summary` | Aggregate stats          |
-| `GET`  | `/api/reviews/repos/list`    | Tracked repositories     |
-| `GET`  | `/health`                    | Health check             |
-
-## Project Structure
-
-```
-synthetic-eclipse/
-├── apps/
-│   ├── api/                    # Bun.js + Express backend
-│   │   └── src/
-│   │       ├── ai/             # GPT-4 reviewer + prompts
-│   │       ├── config/         # Env + logger
-│   │       ├── db/             # Drizzle schema + connection
-│   │       ├── github/         # Webhook, diff parser, commenter
-│   │       ├── queue/          # BullMQ producer + worker
-│   │       ├── routes/         # Webhook + reviews routes
-│   │       └── services/       # Review orchestration
-│   └── web/                    # React + Vite dashboard
-│       └── src/
-│           ├── api/            # Axios client + types
-│           ├── components/     # Layout
-│           └── pages/          # Dashboard, History, Detail
-├── docker-compose.yml
-└── .env.example
-```
-
-## Resume Talking Points
-
-> _"Built a full-stack GitHub App that integrates with GitHub webhooks to automatically review pull requests using GPT-4o. The system parses unified diffs, sends structured prompts to OpenAI, and posts inline PR comments via the GitHub API. Includes a React dashboard with review history and severity analytics. Stack: Bun.js, TypeScript, Express, PostgreSQL (Drizzle ORM), BullMQ, OpenAI API, React."_
+- **Framework**: React, Vite
+- **Styling**: TailwindCSS
