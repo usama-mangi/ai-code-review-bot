@@ -108,17 +108,6 @@ authRouter.get("/github/callback", async (req: Request, res: Response) => {
   }
 });
 
-// 3. Get Current Authenticated User (Requires auth middleware, added in index.ts for this route)
-authRouter.get("/me", async (req: Request, res: Response) => {
-  // @ts-ignore - req.user is populated by requireAuth middleware
-  if (!req.user) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
-  
-  // @ts-ignore
-  res.json(req.user);
-});
-
 // 4. Logout
 authRouter.post("/logout", async (req: Request, res: Response) => {
   const sessionId = req.cookies?.session;
