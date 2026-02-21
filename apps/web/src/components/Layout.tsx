@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, GitPullRequest, Bot, LogOut, User as UserIcon, Settings } from "lucide-react";
+import { LayoutDashboard, GitPullRequest, Bot, LogOut, User as UserIcon, Settings, ExternalLink } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "../AuthContext";
 
@@ -30,6 +30,15 @@ export function Layout() {
 
         {/* Footer */}
         <div className="p-4 border-t space-y-4" style={{ borderColor: "var(--border)" }}>
+          <a
+            href="https://github.com/apps/ai-pr-review-bot-usama-mangi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700"
+          >
+            Install App <ExternalLink size={14} />
+          </a>
+          
           {user && (
             <div className="flex items-center gap-3 w-full bg-neutral-900/50 p-2 rounded-lg border border-neutral-800">
               {user.avatarUrl ? (

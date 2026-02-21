@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../AuthContext";
-import { Settings, Shield, ShieldAlert, GitMerge, Loader2 } from "lucide-react";
+import { Settings, Shield, ShieldAlert, GitMerge, Loader2, ExternalLink } from "lucide-react";
 
 interface Repository {
   githubId: number;
@@ -73,11 +73,22 @@ export function Repositories() {
   return (
     <div className="max-w-4xl mx-auto p-6 lg:p-10">
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Settings className="w-8 h-8 text-brand-400" />
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
-            Repositories
-          </h1>
+        <div className="flex items-center justify-between w-full mb-3">
+          <div className="flex items-center gap-3">
+            <Settings className="w-8 h-8 text-brand-400" />
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
+              Repositories
+            </h1>
+          </div>
+          
+          <a 
+            href="https://github.com/apps/ai-pr-review-bot-usama-mangi" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20"
+          >
+            Install App <ExternalLink size={15} />
+          </a>
         </div>
         <p className="text-neutral-400">
           Manage which repositories the AI Code Review Bot monitors. The bot will only review pull requests for enabled repositories.
@@ -100,7 +111,7 @@ export function Repositories() {
               You haven't installed the GitHub App on any repositories yet, or you don't have access to them.
             </p>
             <a 
-              href="https://github.com/apps/ai-code-review-bot-2/installations/new" 
+              href="https://github.com/apps/ai-pr-review-bot-usama-mangi" 
               target="_blank" 
               rel="noopener noreferrer"
               className="mt-6 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors"
