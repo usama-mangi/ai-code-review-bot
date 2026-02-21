@@ -110,6 +110,8 @@ jobs:
             GITHUB_APP_ID=${{ secrets.GH_APP_ID }}
             GITHUB_APP_PRIVATE_KEY=${{ secrets.GH_APP_PRIVATE_KEY }}
             GITHUB_WEBHOOK_SECRET=${{ secrets.GH_WEBHOOK_SECRET }}
+            GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
+            GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
             OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
