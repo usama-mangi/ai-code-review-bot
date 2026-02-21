@@ -17,7 +17,7 @@ const envSchema = z.object({
   OPENAI_MODEL: z.string().default("gpt-4o"),
 
   // Database
-  DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
+  DATABASE_URL: z.string().startsWith("postgres"),
 
   // Redis
   REDIS_URL: z.string().default("redis://localhost:6379"),
