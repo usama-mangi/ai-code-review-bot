@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, GitPullRequest, Bot, LogOut, User as UserIcon, Settings, ExternalLink } from "lucide-react";
+import { LayoutDashboard, GitPullRequest, Bot, LogOut, User as UserIcon, Settings, ExternalLink, Layers } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "../AuthContext";
 
@@ -26,6 +26,7 @@ export function Layout() {
           <NavItem to="/" icon={<LayoutDashboard size={16} />} label="Dashboard" end />
           <NavItem to="/reviews" icon={<GitPullRequest size={16} />} label="Review History" />
           <NavItem to="/repositories" icon={<Settings size={16} />} label="Repositories" />
+          <NavItem to="/architecture" icon={<Layers size={16} />} label="How It Works" />
         </nav>
 
         {/* Footer */}
