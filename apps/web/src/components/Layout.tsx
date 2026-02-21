@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, GitPullRequest, Bot, LogOut, User as UserIcon, Settings, ExternalLink, Layers } from "lucide-react";
+import { LayoutDashboard, GitPullRequest, LogOut, User as UserIcon, Settings, ExternalLink, Layers } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "../AuthContext";
 
@@ -12,8 +12,8 @@ export function Layout() {
       <aside className="w-60 flex-shrink-0 border-r flex flex-col" style={{ borderColor: "var(--border)", background: "var(--bg-secondary)" }}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-5 border-b" style={{ borderColor: "var(--border)" }}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 shadow-lg shadow-brand-600/30">
-            <Bot size={18} className="text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 shadow-lg shadow-brand-600/30 overflow-hidden p-1.5">
+            <img src="/favicon.png" alt="Logo" className="w-full h-full object-contain filter brightness-0 invert" />
           </div>
           <div>
             <p className="text-sm font-semibold text-white">CodeReview Bot</p>

@@ -73,7 +73,7 @@ export function Architecture() {
       <section className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-2xl">
         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-neutral-900/40">
           <div className="flex items-center gap-3">
-            <Bot className="w-6 h-6 text-brand-400" />
+            <img src="/favicon.png" alt="App Logo" className="w-6 h-6 object-contain" />
             <h2 className="text-xl font-bold text-white">App Architecture (PR Flow)</h2>
           </div>
           <button 
