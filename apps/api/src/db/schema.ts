@@ -6,6 +6,7 @@ import {
   bigint,
   timestamp,
   uniqueIndex,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -17,6 +18,7 @@ export const users = pgTable("users", {
   username: text("username").notNull(),
   avatarUrl: text("avatar_url"),
   email: text("email"),
+  accessToken: text("access_token"), // Store GitHub OAuth token for making API calls
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -37,6 +39,7 @@ export const repositories = pgTable("repositories", {
   githubId: bigint("github_id", { mode: "number" }).notNull().unique(),
   fullName: text("full_name").notNull(), // e.g. "org/repo"
   installationId: bigint("installation_id", { mode: "number" }).notNull(),
+  enabled: boolean("enabled").notNull().default(true), // Whether the bot is enabled for this repo
   installedAt: timestamp("installed_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

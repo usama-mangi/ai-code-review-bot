@@ -8,6 +8,7 @@ import { checkDbConnection } from "./db/index.js";
 import { webhookRouter } from "./routes/webhook.route.js";
 import { reviewsRouter } from "./routes/reviews.route.js";
 import { authRouter } from "./routes/auth.js";
+import { configRouter } from "./routes/config.route.js";
 import { requireAuth } from "./auth.middleware.js";
 import { startWorker } from "./queue/worker.js";
 import cookieParser from "cookie-parser";
@@ -77,6 +78,9 @@ authRouter.get("/me", requireAuth, async (req, res) => {
 
 // Protect reviews with authentication
 app.use("/api/reviews", apiLimiter, requireAuth, reviewsRouter);
+
+// Config endpoints for user settings (e.g. repos)
+app.use("/api/config", apiLimiter, requireAuth, configRouter);
 
 // ─── Error Handler ────────────────────────────────────────────────────────────
 

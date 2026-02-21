@@ -8,6 +8,7 @@ import { ReviewHistory } from "./pages/ReviewHistory";
 import { ReviewDetail } from "./pages/ReviewDetail";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { Login } from "./pages/Login";
+import { Repositories } from "./pages/Repositories";
 
 // Protected Route Wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route index element={<Dashboard />} />
             <Route path="reviews" element={<ReviewHistory />} />
             <Route path="reviews/:id" element={<ReviewDetail />} />
+            <Route path="repositories" element={<Repositories />} />
           </Route>
         </Routes>
       </BrowserRouter>

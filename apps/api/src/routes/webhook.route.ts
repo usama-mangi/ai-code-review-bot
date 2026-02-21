@@ -40,11 +40,21 @@ const webhookHandler: RequestHandler = async (req: Request, res: Response) => {
 
   try {
     // Upsert repository record
-    const repoId = await reviewService.upsertRepository(
+    const repoInfo = await reviewService.upsertRepository(
       repository.id,
       repository.full_name,
       installation.id
     );
+
+    if (!repoInfo.enabled) {
+      logger.info("Skipping review because AI bot is disabled for this repository", { 
+        prNumber: pr.number, 
+        repo: repository.full_name 
+      });
+      return;
+    }
+
+    const repoId = repoInfo.id;
 
     // Create review record (returns null if duplicate)
     const reviewId = await reviewService.createReview({

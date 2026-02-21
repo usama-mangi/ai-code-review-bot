@@ -8,6 +8,13 @@
       "when": 1771618282279,
       "tag": "0000_smooth_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771699089919,
+      "tag": "0001_bored_cassandra_nova",
+      "breakpoints": true
     }
   ]
 }

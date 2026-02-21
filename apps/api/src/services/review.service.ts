@@ -112,21 +112,21 @@ class ReviewService {
     githubId: number,
     fullName: string,
     installationId: number
-  ): Promise<number> {
+  ): Promise<{ id: number; enabled: boolean }> {
     const existing = await db
-      .select({ id: repositories.id })
+      .select({ id: repositories.id, enabled: repositories.enabled })
       .from(repositories)
       .where(eq(repositories.githubId, githubId))
       .limit(1);
 
-    if (existing.length > 0) return existing[0].id;
+    if (existing.length > 0) return existing[0];
 
     const [inserted] = await db
       .insert(repositories)
-      .values({ githubId, fullName, installationId })
-      .returning({ id: repositories.id });
+      .values({ githubId, fullName, installationId, enabled: true })
+      .returning({ id: repositories.id, enabled: repositories.enabled });
 
-    return inserted.id;
+    return inserted;
   }
 
   /**

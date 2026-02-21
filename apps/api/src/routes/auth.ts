@@ -78,6 +78,7 @@ authRouter.get("/github/callback", async (req: Request, res: Response) => {
         username: githubUser.login,
         avatarUrl: githubUser.avatar_url,
         email: githubUser.email,
+        accessToken,
       })
       .onConflictDoUpdate({
         target: users.githubId,
@@ -85,6 +86,7 @@ authRouter.get("/github/callback", async (req: Request, res: Response) => {
           username: githubUser.login,
           avatarUrl: githubUser.avatar_url,
           email: githubUser.email,
+          accessToken,
         },
       })
       .returning();
