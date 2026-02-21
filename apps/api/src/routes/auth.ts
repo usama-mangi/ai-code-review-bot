@@ -8,9 +8,11 @@ import crypto from "crypto";
 export const authRouter: Router = Router();
 
 // Define cookie options for sessions
+const isHttps = env.FRONTEND_URL.startsWith("https://");
+
 const cookieOptions = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
+  secure: isHttps,
   sameSite: "lax" as const,
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   path: "/",
@@ -127,7 +129,7 @@ authRouter.post("/logout", async (req: Request, res: Response) => {
   
   res.clearCookie("session", {
     path: "/",
-    secure: env.NODE_ENV === "production",
+    secure: isHttps,
     sameSite: "lax",
   });
   

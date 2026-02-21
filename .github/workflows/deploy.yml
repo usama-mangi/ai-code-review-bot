@@ -64,8 +64,6 @@ jobs:
         with:
           context: ./apps/web
           push: true
-          build-args: |
-            VITE_API_URL=${{ secrets.FRONTEND_URL }}/api
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:latest
