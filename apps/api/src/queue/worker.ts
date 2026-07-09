@@ -55,8 +55,8 @@ const deadLetterWorker = new Worker(
   },
   {
     connection: redisConnection,
-    removeOnComplete: false,
-    removeOnFail: false,
+    removeOnComplete: { count: -1 },
+    removeOnFail: { count: -1 },
   }
 );
 
