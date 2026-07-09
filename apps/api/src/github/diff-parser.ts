@@ -100,17 +100,19 @@ export function parseDiff(rawDiff: string): DiffChunk[] {
 }
 
 /**
- * Formats diff chunks into a compact string for GPT-4 consumption.
+ * Formats diff chunks into a compact string for AI consumption.
+ * Skips deleted files and non-reviewable files.
  * Limits total size to avoid token limits.
  */
 export function formatDiffForAI(
   chunks: DiffChunk[],
-  maxChars = 12000
+  maxChars = 8000
 ): string {
   let result = "";
 
   for (const chunk of chunks) {
-    if (chunk.fileStatus === "deleted") continue; // Skip deleted files
+    if (chunk.fileStatus === "deleted") continue;
+    if (isNonReviewableFile(chunk.filePath)) continue;
 
     const fileHeader = `\n### File: ${chunk.filePath} (${chunk.fileStatus})\n`;
     let fileContent = fileHeader;
@@ -130,4 +132,88 @@ export function formatDiffForAI(
   }
 
   return result;
+}
+
+/**
+ * Filters out files that don't need AI review.
+ * Skips: lock files, generated files, binary files, minified bundles,
+ * config files, test fixtures, and vendored dependencies.
+ */
+function isNonReviewableFile(filePath: string): boolean {
+  const skipPatterns = [
+    /\.lock$/i,
+    /package-lock\.json$/i,
+    /yarn\.lock$/i,
+    /bun\.lock$/i,
+    /pnpm-lock\.yaml$/i,
+    /\.min\.(js|css)$/i,
+    /\.bundle\.(js|css)$/i,
+    /\.map$/i,
+    /\.d\.ts$/i,
+    /\.generated\./i,
+    /\.pb\.(go|ts|js)$/i,
+    /\.pb\.cc$/i,
+    /\.proto$/i,
+    /\.graphql$/i,
+    /\.gql$/i,
+    /\.sum$/i,
+    /\.mod$/i,
+    /go\.sum$/i,
+    /Cargo\.lock$/i,
+    /Gemfile\.lock$/i,
+    /poetry\.lock$/i,
+    /\.pyc$/i,
+    /\.class$/i,
+    /\.o$/i,
+    /\.so$/i,
+    /\.dylib$/i,
+    /\.dll$/i,
+    /\.exe$/i,
+    /\.bin$/i,
+    /\.zip$/i,
+    /\.tar(\.\w+)?$/i,
+    /\.gz$/i,
+    /\.bz2$/i,
+    /\.7z$/i,
+    /\.rar$/i,
+    /\.pdf$/i,
+    /\.jpg$/i,
+    /\.jpeg$/i,
+    /\.png$/i,
+    /\.gif$/i,
+    /\.svg$/i,
+    /\.ico$/i,
+    /\.woff2?$/i,
+    /\.ttf$/i,
+    /\.eot$/i,
+    /\.mp4$/i,
+    /\.mp3$/i,
+    /\.wav$/i,
+    /\.webm$/i,
+    /\.mov$/i,
+    /\.csv$/i,
+    /\.tsv$/i,
+    /\.xlsx?$/i,
+    /\.docx?$/i,
+    /\.pptx?$/i,
+    /\/vendor\//i,
+    /\/node_modules\//i,
+    /\/\.git\//i,
+    /\/dist\//i,
+    /\/build\//i,
+    /\/out\//i,
+    /\/target\//i,
+    /\/__pycache__\//i,
+    /\/\.next\//i,
+    /\/\.nuxt\//i,
+    /\/\.cache\//i,
+    /\/coverage\//i,
+    /\/migrations\//i,
+    /\/fixtures\//i,
+    /\/snapshots\//i,
+    /\/\.vscode\//i,
+    /\/\.idea\//i,
+  ];
+
+  return skipPatterns.some((pattern) => pattern.test(filePath));
 }

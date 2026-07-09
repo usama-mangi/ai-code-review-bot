@@ -63,7 +63,7 @@ export function Layout() {
           )}
           
           <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
-            Powered by GPT-4o + GitHub API
+            Powered by AI + GitHub API
           </p>
         </div>
       </aside>

@@ -45,6 +45,35 @@ export const repositories = pgTable("repositories", {
     .defaultNow(),
 });
 
+// ─── Repository Configuration ────────────────────────────────────────────────
+
+export const repoConfigs = pgTable("repo_configs", {
+  id: serial("id").primaryKey(),
+  repoId: integer("repo_id")
+    .notNull()
+    .references(() => repositories.id, { onDelete: "cascade" })
+    .unique(),
+  // Review rules
+  minSeverity: text("min_severity").notNull().default("info"), // minimum severity to report
+  maxComments: integer("max_comments").notNull().default(15),
+  reviewDraftPrs: boolean("review_draft_prs").notNull().default(false),
+  // File filtering
+  excludePatterns: text("exclude_patterns"), // comma-separated glob patterns
+  includeOnlyPatterns: text("include_only_patterns"),
+  // Custom instructions for the AI
+  customInstructions: text("custom_instructions"),
+  // Notification settings
+  notifyOnCompletion: boolean("notify_on_completion").notNull().default(false),
+  notifySlackWebhook: text("notify_slack_webhook"),
+  notifyEmails: text("notify_emails"), // comma-separated
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ─── Reviews ─────────────────────────────────────────────────────────────────
 
 export const reviews = pgTable(
@@ -98,8 +127,19 @@ export const comments = pgTable("comments", {
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 
-export const repositoriesRelations = relations(repositories, ({ many }) => ({
+export const repositoriesRelations = relations(repositories, ({ many, one }) => ({
   reviews: many(reviews),
+  config: one(repoConfigs, {
+    fields: [repositories.id],
+    references: [repoConfigs.repoId],
+  }),
+}));
+
+export const repoConfigsRelations = relations(repoConfigs, ({ one }) => ({
+  repository: one(repositories, {
+    fields: [repoConfigs.repoId],
+    references: [repositories.id],
+  }),
 }));
 
 export const reviewsRelations = relations(reviews, ({ one, many }) => ({
@@ -132,6 +172,8 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 
 export type Repository = typeof repositories.$inferSelect;
 export type NewRepository = typeof repositories.$inferInsert;
+export type RepoConfig = typeof repoConfigs.$inferSelect;
+export type NewRepoConfig = typeof repoConfigs.$inferInsert;
 export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
 export type Comment = typeof comments.$inferSelect;

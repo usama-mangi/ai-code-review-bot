@@ -46,6 +46,19 @@ export interface Stats {
   reviewsOverTime: Array<{ date: string; count: number }>;
 }
 
+export interface PerformanceMetrics {
+  avgReviewTime: {
+    avgSeconds: number;
+    maxSeconds: number;
+    minSeconds: number;
+  };
+  statusCounts: Record<string, number>;
+  byRepo: Array<{ repo: string; count: number }>;
+  errorRatePct: number;
+  reviewsPerDay: Array<{ date: string; total: number; completed: number; failed: number }>;
+  weeklyTrend: Array<{ week: string; count: number }>;
+}
+
 export interface Repo {
   id: number;
   fullName: string;
@@ -73,6 +86,11 @@ export const apiClient = {
 
   getStats: async (): Promise<Stats> => {
     const { data } = await api.get("/reviews/stats/summary");
+    return data;
+  },
+
+  getPerformanceMetrics: async (): Promise<PerformanceMetrics> => {
+    const { data } = await api.get("/reviews/stats/performance");
     return data;
   },
 

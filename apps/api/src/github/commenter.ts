@@ -131,6 +131,11 @@ ${summary}
 ### Comment Summary
 ${breakdown || "No issues found."}
 
+### 💡 Quick Actions
+- Click on any inline comment to see the suggestion
+- Reply with \`/accept\` to apply a suggested change
+- Reply with \`/explain\` to get more details on a finding
+
 ---
-*Reviewed by [AI Code Review Bot](https://github.com) powered by GPT-4o*`;
+*Reviewed by [AI Code Review Bot](https://github.com) powered by AI*`;
 }

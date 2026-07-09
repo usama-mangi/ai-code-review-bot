@@ -28,8 +28,11 @@ const webhookHandler: RequestHandler = async (req: Request, res: Response) => {
   const payload = req.body as PullRequestEvent;
   const { action, pull_request: pr, repository, installation } = payload;
 
-  // Only process when PR is opened, updated, or reopened
-  if (!["opened", "synchronize", "reopened"].includes(action)) return;
+  // Process when PR is opened, updated, reopened, or marked ready for review
+  const reviewableActions = ["opened", "synchronize", "reopened", "ready_for_review"];
+  if (!reviewableActions.includes(action)) return;
+
+  const isDraft = pr.draft ?? false;
 
   logger.info("📬 PR webhook received", {
     action,
@@ -81,6 +84,7 @@ const webhookHandler: RequestHandler = async (req: Request, res: Response) => {
       prNumber: pr.number,
       prTitle: pr.title,
       commitSha: pr.head.sha,
+      isDraft,
     });
   } catch (err) {
     logger.error("Failed to handle webhook", { error: err });

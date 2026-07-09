@@ -30,12 +30,13 @@ export function verifyWebhookSignature(
 }
 
 export interface PullRequestEvent {
-  action: "opened" | "synchronize" | "reopened" | "closed";
+  action: "opened" | "synchronize" | "reopened" | "closed" | "ready_for_review" | "converted_to_draft";
   number: number;
   pull_request: {
     number: number;
     title: string;
     html_url: string;
+    draft?: boolean;
     user: { login: string };
     head: { sha: string };
     base: { repo: { id: number; full_name: string } };

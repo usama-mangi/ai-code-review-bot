@@ -12,10 +12,12 @@ import {
   Pie,
   Cell,
   Legend,
+  BarChart,
+  Bar,
 } from "recharts";
-import { apiClient, type Stats, type Review } from "../api/client";
+import { apiClient, type Stats, type Review, type PerformanceMetrics } from "../api/client";
 import { format } from "date-fns";
-import { GitPullRequest, MessageSquare, AlertTriangle, TrendingUp } from "lucide-react";
+import { GitPullRequest, MessageSquare, AlertTriangle, TrendingUp, Clock, BarChart3, Activity } from "lucide-react";
 import clsx from "clsx";
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -36,13 +38,19 @@ const SEVERITY_EMOJI: Record<string, string> = {
 
 export function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [perfMetrics, setPerfMetrics] = useState<PerformanceMetrics | null>(null);
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([apiClient.getStats(), apiClient.getReviews(1, 5)])
-      .then(([s, r]) => {
+    Promise.all([
+      apiClient.getStats(),
+      apiClient.getPerformanceMetrics(),
+      apiClient.getReviews(1, 5),
+    ])
+      .then(([s, p, r]) => {
         setStats(s);
+        setPerfMetrics(p);
         setRecentReviews(r.data);
       })
       .finally(() => setLoading(false));
@@ -184,6 +192,68 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* Performance Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard
+          label="Avg Review Time"
+          value={perfMetrics?.avgReviewTime?.avgSeconds ?? 0}
+          icon={<Clock size={18} className="text-blue-400" />}
+          loading={loading}
+          color="blue"
+          format={(v) => `${v}s`}
+        />
+        <StatCard
+          label="Error Rate"
+          value={perfMetrics?.errorRatePct ?? 0}
+          icon={<AlertTriangle size={18} className="text-orange-400" />}
+          loading={loading}
+          color="orange"
+          format={(v) => `${v}%`}
+        />
+        <StatCard
+          label="Failed Reviews"
+          value={perfMetrics?.statusCounts?.failed ?? 0}
+          icon={<Activity size={18} className="text-red-400" />}
+          loading={loading}
+          color="red"
+        />
+        <StatCard
+          label="Repos Tracked"
+          value={perfMetrics?.byRepo?.length ?? 0}
+          icon={<BarChart3 size={18} className="text-green-400" />}
+          loading={loading}
+          color="green"
+        />
+      </div>
+
+      {/* Weekly Trend Chart */}
+      {perfMetrics && perfMetrics.weeklyTrend.length > 0 && (
+        <div className="card">
+          <h2 className="text-sm font-semibold text-white mb-4">Weekly Review Trend (12 weeks)</h2>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart
+              data={perfMetrics.weeklyTrend.map((d) => ({
+                week: format(new Date(d.week), "MMM d"),
+                reviews: d.count,
+              }))}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="week" tick={{ fill: "var(--text-muted)", fontSize: 10 }} />
+              <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  color: "var(--text-primary)",
+                }}
+              />
+              <Bar dataKey="reviews" fill="#6366f1" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {/* Recent Reviews */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
@@ -218,18 +288,23 @@ function StatCard({
   icon,
   loading,
   color,
+  format: formatFn,
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
   loading: boolean;
   color: string;
+  format?: (v: number) => string;
 }) {
   const glowMap: Record<string, string> = {
     brand: "shadow-brand-600/10",
     emerald: "shadow-emerald-600/10",
     yellow: "shadow-yellow-600/10",
     red: "shadow-red-600/10",
+    blue: "shadow-blue-600/10",
+    orange: "shadow-orange-600/10",
+    green: "shadow-green-600/10",
   };
 
   return (
@@ -243,7 +318,7 @@ function StatCard({
       {loading ? (
         <div className="skeleton h-8 w-24" />
       ) : (
-        <span className="stat-value">{value.toLocaleString()}</span>
+        <span className="stat-value">{formatFn ? formatFn(value) : value.toLocaleString()}</span>
       )}
     </div>
   );

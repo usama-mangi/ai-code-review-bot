@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "../db/index.js";
-import { repositories } from "../db/schema.js";
+import { repositories, repoConfigs } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
 export const configRouter: Router = Router();
@@ -55,21 +55,40 @@ configRouter.get("/repositories", async (req: Request, res: Response) => {
       }
     }
 
-    // 3. Fetch from our DB to get 'enabled' status
+    // 3. Fetch from our DB to get 'enabled' status and config
     const dbRepos = await db.select().from(repositories);
     const dbRepoMap = new Map();
     for (const r of dbRepos) {
       dbRepoMap.set(r.githubId, r);
     }
 
-    // 4. Merge
+    // 4. Fetch repo configs
+    const dbConfigs = await db.select().from(repoConfigs);
+    const configMap = new Map();
+    for (const c of dbConfigs) {
+      configMap.set(c.repoId, c);
+    }
+
+    // 5. Merge
     const result = allGithubRepos.map((r) => {
       const dbRepo = dbRepoMap.get(r.githubId);
+      const config = dbRepo ? configMap.get(dbRepo.id) : null;
       return {
         githubId: r.githubId,
         fullName: r.fullName,
         installationId: r.installationId,
-        enabled: dbRepo ? dbRepo.enabled : true, // Default to true
+        enabled: dbRepo ? dbRepo.enabled : true,
+        config: config ? {
+          minSeverity: config.minSeverity,
+          maxComments: config.maxComments,
+          reviewDraftPrs: config.reviewDraftPrs,
+          excludePatterns: config.excludePatterns,
+          includeOnlyPatterns: config.includeOnlyPatterns,
+          customInstructions: config.customInstructions,
+          notifyOnCompletion: config.notifyOnCompletion,
+          notifySlackWebhook: config.notifySlackWebhook,
+          notifyEmails: config.notifyEmails,
+        } : null,
       };
     });
 
@@ -100,7 +119,6 @@ configRouter.post("/repositories/:githubId/toggle", async (req: Request, res: Re
         .set({ enabled })
         .where(eq(repositories.githubId, githubId));
     } else {
-      // Create it with the supplied details
       if (!fullName || !installationId) {
         return res.status(400).json({ error: "Missing fullName or installationId for new repo" });
       }
@@ -116,5 +134,102 @@ configRouter.post("/repositories/:githubId/toggle", async (req: Request, res: Re
   } catch (err) {
     console.error("Failed to toggle repository:", err);
     res.status(500).json({ error: "Failed to toggle repository" });
+  }
+});
+
+// ─── Repository Config CRUD ──────────────────────────────────────────────────
+
+// GET /api/config/repositories/:repoId/config — get repo config
+configRouter.get("/repositories/:repoId/config", async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
+  const repoId = parseInt(req.params.repoId, 10);
+
+  try {
+    const [config] = await db
+      .select()
+      .from(repoConfigs)
+      .where(eq(repoConfigs.repoId, repoId))
+      .limit(1);
+
+    if (!config) {
+      return res.json({
+        minSeverity: "info",
+        maxComments: 15,
+        reviewDraftPrs: false,
+        excludePatterns: null,
+        includeOnlyPatterns: null,
+        customInstructions: null,
+        notifyOnCompletion: false,
+        notifySlackWebhook: null,
+        notifyEmails: null,
+      });
+    }
+
+    res.json(config);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch repo config" });
+  }
+});
+
+// PUT /api/config/repositories/:repoId/config — upsert repo config
+configRouter.put("/repositories/:repoId/config", async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
+  const repoId = parseInt(req.params.repoId, 10);
+  const {
+    minSeverity,
+    maxComments,
+    reviewDraftPrs,
+    excludePatterns,
+    includeOnlyPatterns,
+    customInstructions,
+    notifyOnCompletion,
+    notifySlackWebhook,
+    notifyEmails,
+  } = req.body;
+
+  try {
+    const [existing] = await db
+      .select()
+      .from(repoConfigs)
+      .where(eq(repoConfigs.repoId, repoId))
+      .limit(1);
+
+    if (existing) {
+      await db
+        .update(repoConfigs)
+        .set({
+          minSeverity: minSeverity ?? existing.minSeverity,
+          maxComments: maxComments ?? existing.maxComments,
+          reviewDraftPrs: reviewDraftPrs ?? existing.reviewDraftPrs,
+          excludePatterns: excludePatterns ?? existing.excludePatterns,
+          includeOnlyPatterns: includeOnlyPatterns ?? existing.includeOnlyPatterns,
+          customInstructions: customInstructions ?? existing.customInstructions,
+          notifyOnCompletion: notifyOnCompletion ?? existing.notifyOnCompletion,
+          notifySlackWebhook: notifySlackWebhook ?? existing.notifySlackWebhook,
+          notifyEmails: notifyEmails ?? existing.notifyEmails,
+          updatedAt: new Date(),
+        })
+        .where(eq(repoConfigs.repoId, repoId));
+    } else {
+      await db.insert(repoConfigs).values({
+        repoId,
+        minSeverity: minSeverity ?? "info",
+        maxComments: maxComments ?? 15,
+        reviewDraftPrs: reviewDraftPrs ?? false,
+        excludePatterns: excludePatterns ?? null,
+        includeOnlyPatterns: includeOnlyPatterns ?? null,
+        customInstructions: customInstructions ?? null,
+        notifyOnCompletion: notifyOnCompletion ?? false,
+        notifySlackWebhook: notifySlackWebhook ?? null,
+        notifyEmails: notifyEmails ?? null,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to update repo config:", err);
+    res.status(500).json({ error: "Failed to update repo config" });
   }
 });
