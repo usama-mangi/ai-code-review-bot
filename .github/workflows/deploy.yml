@@ -104,6 +104,17 @@ jobs:
           REDIS_URL="redis://redis:6379"
           PORT="3000"
           NODE_ENV="production"
+          AI_PROVIDER="${{ secrets.AI_PROVIDER }}"
+          ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}"
+          ANTHROPIC_BASE_URL="${{ secrets.ANTHROPIC_BASE_URL }}"
+          ANTHROPIC_MODEL="${{ secrets.ANTHROPIC_MODEL }}"
+          GOOGLE_API_KEY="${{ secrets.GOOGLE_API_KEY }}"
+          GOOGLE_BASE_URL="${{ secrets.GOOGLE_BASE_URL }}"
+          GOOGLE_MODEL="${{ secrets.GOOGLE_MODEL }}"
+          AI_FALLBACK_1="${{ secrets.AI_FALLBACK_1 }}"
+          AI_FALLBACK_2="${{ secrets.AI_FALLBACK_2 }}"
+          SENDGRID_API_KEY="${{ secrets.SENDGRID_API_KEY }}"
+          NOTIFICATION_FROM_EMAIL="${{ secrets.NOTIFICATION_FROM_EMAIL }}"
           EOF
 
       - name: Copy files to VM
