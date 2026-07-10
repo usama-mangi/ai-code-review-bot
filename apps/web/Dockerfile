@@ -1,14 +1,11 @@
-# Build stage
-FROM oven/bun:1 AS builder
+FROM oven/bun:1-slim AS base
 WORKDIR /app
+
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
+
 COPY . .
 RUN bun run build
 
-# Production stage — serve with Nginx
-FROM nginx:alpine AS runner
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx-spa.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["bun", "run", "serve.ts"]
