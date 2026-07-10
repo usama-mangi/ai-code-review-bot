@@ -136,6 +136,10 @@ jobs:
             # Rename .env.prod to .env for Docker Compose
             mv .env.prod .env
 
+            # Override FRONTEND_URL with nip.io domain (auto-detects VM IP)
+            VM_IP=$(curl -s http://checkip.amazonaws.com || curl -s ifconfig.me)
+            sed -i "s|^FRONTEND_URL=.*|FRONTEND_URL=http://code-review.${VM_IP}.nip.io|" .env
+
             # Pull new images
             docker compose -f docker-compose.prod.yml pull
 
@@ -153,12 +157,12 @@ jobs:
 
             # Configure Nginx reverse proxy
             if ! command -v nginx &> /dev/null; then
-              apt-get update -qq && apt-get install -y -qq nginx
+              sudo apt-get update -qq && sudo apt-get install -y -qq nginx
             fi
-            cp nginx/codereview.conf /etc/nginx/sites-available/codereview
-            ln -sf /etc/nginx/sites-available/codereview /etc/nginx/sites-enabled/
-            rm -f /etc/nginx/sites-enabled/default
-            nginx -t && systemctl restart nginx
+            sudo cp nginx/codereview.conf /etc/nginx/sites-available/codereview
+            sudo ln -sf /etc/nginx/sites-available/codereview /etc/nginx/sites-enabled/
+            sudo rm -f /etc/nginx/sites-enabled/default
+            sudo nginx -t && sudo systemctl restart nginx
 
             # Prune old images to save disk space
             docker image prune -f

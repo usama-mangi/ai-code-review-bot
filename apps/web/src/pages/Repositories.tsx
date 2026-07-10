@@ -82,7 +82,7 @@ export function Repositories() {
           </div>
           
           <a 
-            href="https://github.com/apps/ai-pr-review-bot-usama-mangi" 
+            href="https://github.com/apps/code-qa-review-bot" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20"
@@ -111,7 +111,7 @@ export function Repositories() {
               You haven't installed the GitHub App on any repositories yet, or you don't have access to them.
             </p>
             <a 
-              href="https://github.com/apps/ai-pr-review-bot-usama-mangi" 
+              href="https://github.com/apps/code-qa-review-bot" 
               target="_blank" 
               rel="noopener noreferrer"
               className="mt-6 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors"

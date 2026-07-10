@@ -32,7 +32,7 @@ export function Layout() {
         {/* Footer */}
         <div className="p-4 border-t space-y-4" style={{ borderColor: "var(--border)" }}>
           <a
-            href="https://github.com/apps/ai-pr-review-bot-usama-mangi"
+            href="https://github.com/apps/code-qa-review-bot"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700"
