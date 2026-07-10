@@ -53,6 +53,7 @@ jobs:
         with:
           context: ./apps/api
           push: true
+          provenance: false
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:latest
@@ -62,6 +63,7 @@ jobs:
         with:
           context: ./apps/web
           push: true
+          provenance: false
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:latest
