@@ -56,8 +56,6 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build & push Web image
         uses: docker/build-push-action@v5
@@ -67,8 +65,6 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   # ─── CD: Deploy to Azure VM ───────────────────────────────────────────────────
   deploy:
