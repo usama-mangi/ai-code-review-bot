@@ -58,15 +58,21 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:latest
 
-      - name: Build & push Web image
+      - name: Build Web image
         uses: docker/build-push-action@v5
         with:
           context: ./apps/web
-          push: true
+          push: false
+          load: true
           provenance: false
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-web:latest
+
+      - name: Push Web image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/codereview-web:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/codereview-web:latest
 
   # ─── CD: Deploy to Azure VM ───────────────────────────────────────────────────
   deploy:
