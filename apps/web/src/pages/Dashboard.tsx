@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { apiClient, type Stats, type Review, type PerformanceMetrics } from "../api/client";
 import { format } from "date-fns";
-import { GitPullRequest, MessageSquare, AlertTriangle, TrendingUp, Clock, BarChart3, Activity } from "lucide-react";
+import { GitPullRequest, MessageSquare, AlertTriangle, TrendingUp, Clock, BarChart3, Activity, AlertCircle, RefreshCw } from "lucide-react";
 import clsx from "clsx";
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -41,8 +41,11 @@ export function Dashboard() {
   const [perfMetrics, setPerfMetrics] = useState<PerformanceMetrics | null>(null);
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true);
+    setError(null);
     Promise.all([
       apiClient.getStats(),
       apiClient.getPerformanceMetrics(),
@@ -53,7 +56,15 @@ export function Dashboard() {
         setPerfMetrics(p);
         setRecentReviews(r.data);
       })
+      .catch((err) => {
+        console.error("Failed to load dashboard:", err);
+        setError("Failed to load dashboard data. Check your connection and try again.");
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const pieData = stats
@@ -67,6 +78,23 @@ export function Dashboard() {
     date: format(new Date(d.date), "MMM d"),
     reviews: d.count,
   })) ?? [];
+
+  if (error && !loading) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
+          <AlertCircle size={28} className="text-red-400" />
+        </div>
+        <h2 className="text-lg font-semibold text-white mb-2">Something went wrong</h2>
+        <p className="text-sm text-center max-w-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+          {error}
+        </p>
+        <button onClick={fetchData} className="btn-primary gap-2">
+          <RefreshCw size={14} /> Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -142,7 +170,12 @@ export function Dashboard() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState message="No review data yet. Open a PR in a connected repo!" />
+            <EmptyState
+              title="No review data yet"
+              message="Install the GitHub App on a repository and open a pull request to start seeing review activity here."
+              linkTo="/repositories"
+              linkText="Set up repositories"
+            />
           )}
         </div>
 
@@ -187,7 +220,10 @@ export function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState message="No comments yet." />
+            <EmptyState
+              title="No comments yet"
+              message="Comments from AI reviews will appear here with severity breakdowns."
+            />
           )}
         </div>
       </div>
@@ -275,7 +311,12 @@ export function Dashboard() {
             ))}
           </div>
         ) : (
-          <EmptyState message="No reviews yet. Install the GitHub App and open a PR!" />
+          <EmptyState
+            title="No reviews yet"
+            message="Install the GitHub App on your repository, then open a pull request. The bot will automatically review it and post comments here."
+            linkTo="/repositories"
+            linkText="Install the GitHub App"
+          />
         )}
       </div>
     </div>
@@ -329,7 +370,7 @@ function ReviewRow({ review }: { review: Review }) {
   return (
     <Link
       to={`/reviews/${review.id}`}
-      className="flex items-center justify-between rounded-lg p-3 transition-all duration-150 hover:bg-[var(--bg-card-hover)] group"
+      className="flex items-center justify-between rounded-lg p-3 transition-all duration-150 hover:bg-[var(--bg-card-hover)] group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-[var(--bg-card)]"
     >
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-600/15 flex items-center justify-center">
@@ -354,13 +395,34 @@ function ReviewRow({ review }: { review: Review }) {
   );
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({
+  title,
+  message,
+  linkTo,
+  linkText,
+}: {
+  title: string;
+  message: string;
+  linkTo?: string;
+  linkText?: string;
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-10 text-center">
-      <div className="text-4xl mb-3">🤖</div>
-      <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+      <div className="w-14 h-14 rounded-2xl bg-brand-600/10 flex items-center justify-center mb-4">
+        <GitPullRequest size={24} className="text-brand-400" />
+      </div>
+      <p className="text-sm font-medium text-white mb-1">{title}</p>
+      <p className="text-xs max-w-xs" style={{ color: "var(--text-muted)" }}>
         {message}
       </p>
+      {linkTo && linkText && (
+        <Link
+          to={linkTo}
+          className="mt-4 text-xs font-medium text-brand-400 hover:text-brand-300 transition-colors"
+        >
+          {linkText} →
+        </Link>
+      )}
     </div>
   );
 }
