@@ -1,165 +1,158 @@
 import { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, GitPullRequest, LogOut, User as UserIcon, Settings, ExternalLink, Layers, Menu, X } from "lucide-react";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { LayoutDashboard, GitPullRequest, Settings, Layers, LogOut, User as UserIcon, Menu, X, ExternalLink } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "../AuthContext";
+
+const NAV = [
+  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/reviews", icon: GitPullRequest, label: "Reviews" },
+  { to: "/repositories", icon: Settings, label: "Repos" },
+  { to: "/architecture", icon: Layers, label: "Architecture" },
+];
 
 export function Layout() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  
+  const location = useLocation();
+  const currentPage = NAV.find(n => n.to === location.pathname)?.label ?? "";
+
   return (
-    <div className="flex min-h-screen" style={{ background: "var(--bg-primary)" }}>
-      {/* Sidebar — desktop: static in flow; mobile: fixed drawer */}
+    <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg-primary)" }}>
+      {/* Icon rail — desktop only */}
       <aside 
-        className={clsx(
-          "flex-shrink-0 border-r flex flex-col z-50",
-          "w-56",
-          /* mobile: fixed overlay drawer */
-          "fixed inset-y-0 left-0 transition-transform duration-200",
-          mobileOpen ? "translate-x-0" : "-translate-x-full",
-          /* desktop: static, in flow */
-          "lg:static lg:translate-x-0"
-        )}
+        className="hidden lg:flex flex-col items-center w-12 flex-shrink-0 border-r py-3 gap-1"
         style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}
       >
-        {/* Logo */}
-        <div className="flex items-center justify-between px-4 py-4 border-b" style={{ borderColor: "var(--border-subtle)" }}>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md overflow-hidden" style={{ background: "var(--accent-dim)" }}>
-              <img src="/favicon.png" alt="Logo" className="w-5 h-5 object-contain" />
-            </div>
-            <div>
-              <p className="text-xs font-bold tracking-wide" style={{ color: "var(--text-primary)" }}>CODEREVIEW</p>
-              <p className="text-[10px] font-medium tracking-widest" style={{ color: "var(--text-muted)" }}>BOT</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1 rounded"
-            style={{ color: "var(--text-muted)" }}
-            aria-label="Close sidebar"
-          >
-            <X size={16} />
-          </button>
+        <div className="w-8 h-8 rounded flex items-center justify-center mb-3" style={{ background: "var(--accent-dim)" }}>
+          <img src="/favicon.png" alt="Logo" className="w-4.5 h-4.5 object-contain" />
         </div>
-
-        {/* Nav */}
-        <nav className="flex-1 p-2 space-y-0.5" role="navigation" aria-label="Main navigation">
-          <NavItem to="/" icon={<LayoutDashboard size={15} />} label="Dashboard" end onClick={() => setMobileOpen(false)} />
-          <NavItem to="/reviews" icon={<GitPullRequest size={15} />} label="Reviews" onClick={() => setMobileOpen(false)} />
-          <NavItem to="/repositories" icon={<Settings size={15} />} label="Repos" onClick={() => setMobileOpen(false)} />
-          <NavItem to="/architecture" icon={<Layers size={15} />} label="Architecture" onClick={() => setMobileOpen(false)} />
-        </nav>
-
-        {/* Footer */}
-        <div className="p-3 border-t space-y-3" style={{ borderColor: "var(--border-subtle)" }}>
-          <a
-            href="https://github.com/apps/code-qa-review-bot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 w-full py-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider rounded-md transition-colors border"
-            style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-muted)" }}
+        
+        {NAV.map(({ to, icon: Icon, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === "/"}
+            className={({ isActive }) => clsx(
+              "w-9 h-9 flex items-center justify-center rounded transition-colors relative",
+              isActive ? "text-[var(--accent)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+            )}
+            style={({ isActive }) => isActive ? { background: "var(--accent-dim)" } : undefined}
+            title={label}
+            aria-label={label}
           >
-            Install App <ExternalLink size={11} />
-          </a>
-          
-          {user && (
-            <div className="flex items-center gap-2 p-2 rounded-md" style={{ background: "var(--bg-card)" }}>
+            <Icon size={16} />
+          </NavLink>
+        ))}
+
+        <div className="flex-1" />
+
+        <a
+          href="https://github.com/apps/code-qa-review-bot"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-9 h-9 flex items-center justify-center rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+          title="Install App"
+          aria-label="Install App on GitHub"
+        >
+          <ExternalLink size={14} />
+        </a>
+
+        {user && (
+          <div className="relative group">
+            <button className="w-9 h-9 flex items-center justify-center rounded overflow-hidden" style={{ background: "var(--bg-card)" }}>
               {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.username} className="w-7 h-7 rounded" style={{ background: "var(--bg-secondary)" }} />
+                <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: "var(--bg-secondary)" }}>
-                  <UserIcon size={13} style={{ color: "var(--text-muted)" }} />
-                </div>
+                <UserIcon size={14} style={{ color: "var(--text-muted)" }} />
               )}
-              <div className="flex-1 overflow-hidden">
-                <p className="text-[11px] font-semibold truncate" style={{ color: "var(--text-primary)" }}>{user.username}</p>
-              </div>
-              <button 
-                onClick={logout}
-                className="p-1 rounded transition-colors"
-                style={{ color: "var(--text-muted)" }}
-                title="Logout"
-                aria-label="Logout"
-                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--status-critical)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
-              >
-                <LogOut size={13} />
+            </button>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 rounded-md border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 whitespace-nowrap"
+              style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}
+            >
+              <p className="text-[10px] font-semibold mb-1.5" style={{ color: "var(--text-primary)" }}>{user.username}</p>
+              <button onClick={logout} className="flex items-center gap-1.5 text-[10px] w-full" style={{ color: "var(--status-critical)" }}>
+                <LogOut size={10} /> Sign out
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </aside>
 
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div 
-          className="fixed inset-0 z-40 lg:hidden"
-          style={{ background: "rgba(0,0,0,0.6)" }}
-          onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-40 lg:hidden" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
-        <header className="lg:hidden flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
-          <button 
-            onClick={() => setMobileOpen(true)}
-            className="p-1 rounded"
-            style={{ color: "var(--text-secondary)" }}
-            aria-label="Open navigation"
-          >
-            <Menu size={18} />
-          </button>
+      {/* Mobile drawer */}
+      <aside className={clsx(
+        "fixed inset-y-0 left-0 z-50 w-52 flex flex-col border-r transition-transform duration-200 lg:hidden",
+        mobileOpen ? "translate-x-0" : "-translate-x-full"
+      )} style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
+        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--border-subtle)" }}>
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded overflow-hidden" style={{ background: "var(--accent-dim)" }}>
+            <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
               <img src="/favicon.png" alt="Logo" className="w-4 h-4 object-contain" />
             </div>
-            <span className="text-[11px] font-bold tracking-wider" style={{ color: "var(--text-primary)" }}>CODEREVIEW</span>
+            <span className="text-[11px] font-bold tracking-wider" style={{ color: "var(--text-primary)" }}>CODE REVIEW</span>
+          </div>
+          <button onClick={() => setMobileOpen(false)} style={{ color: "var(--text-muted)" }} aria-label="Close">
+            <X size={16} />
+          </button>
+        </div>
+        <nav className="flex-1 p-2 space-y-0.5">
+          {NAV.map(({ to, icon: Icon, label }) => (
+            <NavLink key={to} to={to} end={to === "/"} onClick={() => setMobileOpen(false)}
+              className={({ isActive }) => clsx(
+                "flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded transition-colors",
+                isActive ? "text-[var(--accent)]" : "text-[var(--text-muted)]"
+              )}
+              style={({ isActive }) => isActive ? { background: "var(--accent-dim)" } : undefined}
+            >
+              <Icon size={14} /> {label}
+            </NavLink>
+          ))}
+        </nav>
+        {user && (
+          <div className="p-3 border-t flex items-center gap-2" style={{ borderColor: "var(--border-subtle)" }}>
+            {user.avatarUrl && <img src={user.avatarUrl} alt="" className="w-6 h-6 rounded" />}
+            <span className="text-[10px] font-semibold flex-1 truncate" style={{ color: "var(--text-primary)" }}>{user.username}</span>
+            <button onClick={logout} style={{ color: "var(--text-muted)" }} aria-label="Logout"><LogOut size={12} /></button>
+          </div>
+        )}
+      </aside>
+
+      {/* Main area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top bar */}
+        <header className="flex items-center justify-between h-10 px-4 border-b flex-shrink-0" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setMobileOpen(true)} className="lg:hidden p-0.5" style={{ color: "var(--text-secondary)" }} aria-label="Menu">
+              <Menu size={16} />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>{currentPage || "Dashboard"}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--status-ok)" }} />
+              <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>System OK</span>
+            </div>
+            {user && (
+              <div className="hidden sm:flex items-center gap-1.5">
+                {user.avatarUrl && <img src={user.avatarUrl} alt="" className="w-5 h-5 rounded" />}
+                <span className="text-[10px] font-medium" style={{ color: "var(--text-secondary)" }}>{user.username}</span>
+              </div>
+            )}
           </div>
         </header>
 
+        {/* Content */}
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>
       </div>
     </div>
-  );
-}
-
-function NavItem({
-  to,
-  icon,
-  label,
-  end,
-  onClick,
-}: {
-  to: string;
-  icon: React.ReactNode;
-  label: string;
-  end?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <NavLink
-      to={to}
-      end={end}
-      onClick={onClick}
-      className={({ isActive }) =>
-        clsx(
-          "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium transition-all duration-100",
-          isActive
-            ? "text-[var(--accent)]"
-            : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-        )
-      }
-      style={({ isActive }) => isActive ? { background: "var(--accent-dim)" } : undefined}
-    >
-      {icon}
-      {label}
-    </NavLink>
   );
 }

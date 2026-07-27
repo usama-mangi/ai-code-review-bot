@@ -24,6 +24,7 @@
     --status-critical: #f87171;
     --status-info: #60a5fa;
     --status-muted: #6a6a82;
+    --info: #60a5fa;
   }
 
   * {
@@ -194,7 +195,15 @@
 
   .code-font {
     font-family: "IBM Plex Mono", monospace;
-    font-size: 12px;
+    font-size: 11px;
+  }
+
+  /* Line clamp */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
