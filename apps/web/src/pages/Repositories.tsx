@@ -80,14 +80,15 @@ export function Repositories() {
           
           <a 
             href="https://github.com/apps/code-qa-review-bot" 
-            target="_blank" 
+            target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20"
+            className="flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20"
+            style={{ background: "var(--accent)" }}
           >
             Install App <ExternalLink size={15} />
           </a>
         </div>
-        <p className="text-neutral-400">
+        <p style={{ color: "var(--text-secondary)" }}>
           Manage which repositories the AI Code Review Bot monitors. The bot will only review pull requests for enabled repositories.
         </p>
         
@@ -113,33 +114,41 @@ export function Repositories() {
             <div className="w-14 h-14 rounded-2xl bg-brand-600/10 flex items-center justify-center mb-4">
               <GitMerge size={24} className="text-brand-400" />
             </div>
-            <p className="text-lg font-medium text-neutral-300">No repositories found</p>
+            <p className="text-lg font-medium text-white">No repositories found</p>
             <p className="text-sm mt-2 max-w-sm" style={{ color: "var(--text-muted)" }}>
               You haven't installed the GitHub App on any repositories yet, or you don't have access to them.
             </p>
             <a 
               href="https://github.com/apps/code-qa-review-bot" 
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors"
+              className="mt-6 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"
+              style={{ background: "var(--accent)" }}
             >
               Install App on GitHub
             </a>
           </div>
         ) : (
-          <ul className="divide-y divide-[var(--border)]">
+          <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
             {repositories.map((repo) => (
-              <li key={repo.githubId} className="flex items-center justify-between p-4 sm:p-5 hover:bg-[var(--bg-card-hover)] transition-colors">
+              <li key={repo.githubId} className="flex items-center justify-between p-4 sm:p-5 transition-colors" style={{ ["--hover-bg" as any]: "var(--bg-card-hover)" }}>
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${repo.enabled ? 'bg-brand-500/10 border-brand-500/20 text-brand-400' : 'bg-neutral-800 border-neutral-700 text-neutral-500'}`}>
+                  <div 
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border"
+                    style={{ 
+                      background: repo.enabled ? "var(--accent-glow)" : "var(--bg-secondary)", 
+                      borderColor: repo.enabled ? "rgba(99, 102, 241, 0.2)" : "var(--border-subtle)",
+                      color: repo.enabled ? "var(--accent)" : "var(--text-muted)" 
+                    }}
+                  >
                     <GitMerge size={20} />
                   </div>
                   <div>
-                    <h3 className={`font-semibold text-lg ${repo.enabled ? 'text-neutral-200' : 'text-neutral-400'}`}>
+                    <h3 className="font-semibold text-lg" style={{ color: repo.enabled ? "var(--text-primary)" : "var(--text-secondary)" }}>
                       {repo.fullName}
                     </h3>
-                    <p className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5">
-                      <Shield size={12} className={repo.enabled ? "text-green-400" : "text-neutral-600"} />
+                    <p className="text-xs flex items-center gap-1.5 mt-0.5" style={{ color: "var(--text-muted)" }}>
+                      <Shield size={12} className={repo.enabled ? "text-green-400" : ""} style={!repo.enabled ? { color: "var(--text-muted)" } : undefined} />
                       {repo.enabled ? "Active code reviews enabled" : "Code reviews disabled"}
                     </p>
                   </div>
@@ -150,9 +159,11 @@ export function Repositories() {
                   aria-checked={repo.enabled}
                   aria-label={`${repo.enabled ? "Disable" : "Enable"} code reviews for ${repo.fullName}`}
                   onClick={() => toggleRepository(repo)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
-                    repo.enabled ? "bg-brand-500" : "bg-neutral-700"
-                  }`}
+                  className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                  style={{ 
+                    background: repo.enabled ? "var(--accent)" : "var(--border)",
+                    ["--tw-ring-offset-color" as any]: "var(--bg-card)"
+                  }}
                 >
                   <span
                     aria-hidden="true"
