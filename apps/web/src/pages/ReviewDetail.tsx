@@ -92,10 +92,6 @@ export function ReviewDetail() {
     return acc;
   }, {});
 
-  const activeComments = activeFile
-    ? review.comments.filter((c) => c.filePath === activeFile)
-    : review.comments;
-
   return (
     <div className="p-6 space-y-5 animate-fade-in">
       {/* Back */}
@@ -294,7 +290,7 @@ export function ReviewDetail() {
             {/* Filtered results count */}
             {(searchQuery || activeSeverity) && (
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Showing {filteredComments.length} of {activeComments.length} comments
+                Showing {filteredComments.length} of {review.comments.filter((c) => activeFile ? c.filePath === activeFile : true).length} comments
                 {searchQuery && ` matching "${searchQuery}"`}
               </p>
             )}
