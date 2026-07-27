@@ -22,7 +22,7 @@ export function Layout() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1" role="navigation" aria-label="Main navigation">
           <NavItem to="/" icon={<LayoutDashboard size={16} />} label="Dashboard" end />
           <NavItem to="/reviews" icon={<GitPullRequest size={16} />} label="Review History" />
           <NavItem to="/repositories" icon={<Settings size={16} />} label="Repositories" />
@@ -35,7 +35,7 @@ export function Layout() {
             href="https://github.com/apps/code-qa-review-bot"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700"
+            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)]"
           >
             Install App <ExternalLink size={14} />
           </a>
@@ -54,8 +54,9 @@ export function Layout() {
               </div>
               <button 
                 onClick={logout}
-                className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-neutral-800 rounded-md transition-colors"
+                className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-neutral-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
                 title="Logout"
+                aria-label="Logout"
               >
                 <LogOut size={16} />
               </button>
@@ -93,7 +94,7 @@ function NavItem({
       end={end}
       className={({ isActive }) =>
         clsx(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)]",
           isActive
             ? "bg-brand-600/20 text-brand-400 border border-brand-600/30"
             : "text-[var(--text-secondary)] hover:bg-[var(--bg-card)] hover:text-[var(--text-primary)]"
