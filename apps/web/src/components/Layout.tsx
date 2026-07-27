@@ -6,25 +6,20 @@ import { useAuth } from "../AuthContext";
 
 export function Layout() {
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   
   return (
     <div className="flex min-h-screen" style={{ background: "var(--bg-primary)" }}>
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 lg:hidden"
-          style={{ background: "rgba(0,0,0,0.6)" }}
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Sidebar — desktop: static in flow; mobile: fixed drawer */}
       <aside 
         className={clsx(
-          "w-56 flex-shrink-0 border-r flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-200 lg:translate-x-0 lg:static",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "flex-shrink-0 border-r flex flex-col z-50",
+          "w-56",
+          /* mobile: fixed overlay drawer */
+          "fixed inset-y-0 left-0 transition-transform duration-200",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
+          /* desktop: static, in flow */
+          "lg:static lg:translate-x-0"
         )}
         style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}
       >
@@ -40,7 +35,7 @@ export function Layout() {
             </div>
           </div>
           <button 
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => setMobileOpen(false)}
             className="lg:hidden p-1 rounded"
             style={{ color: "var(--text-muted)" }}
             aria-label="Close sidebar"
@@ -51,10 +46,10 @@ export function Layout() {
 
         {/* Nav */}
         <nav className="flex-1 p-2 space-y-0.5" role="navigation" aria-label="Main navigation">
-          <NavItem to="/" icon={<LayoutDashboard size={15} />} label="Dashboard" end onClick={() => setSidebarOpen(false)} />
-          <NavItem to="/reviews" icon={<GitPullRequest size={15} />} label="Reviews" onClick={() => setSidebarOpen(false)} />
-          <NavItem to="/repositories" icon={<Settings size={15} />} label="Repos" onClick={() => setSidebarOpen(false)} />
-          <NavItem to="/architecture" icon={<Layers size={15} />} label="Architecture" onClick={() => setSidebarOpen(false)} />
+          <NavItem to="/" icon={<LayoutDashboard size={15} />} label="Dashboard" end onClick={() => setMobileOpen(false)} />
+          <NavItem to="/reviews" icon={<GitPullRequest size={15} />} label="Reviews" onClick={() => setMobileOpen(false)} />
+          <NavItem to="/repositories" icon={<Settings size={15} />} label="Repos" onClick={() => setMobileOpen(false)} />
+          <NavItem to="/architecture" icon={<Layers size={15} />} label="Architecture" onClick={() => setMobileOpen(false)} />
         </nav>
 
         {/* Footer */}
@@ -64,11 +59,7 @@ export function Layout() {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-1.5 w-full py-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider rounded-md transition-colors border"
-            style={{ 
-              background: "var(--bg-card)", 
-              borderColor: "var(--border)", 
-              color: "var(--text-muted)" 
-            }}
+            style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-muted)" }}
           >
             Install App <ExternalLink size={11} />
           </a>
@@ -101,12 +92,22 @@ export function Layout() {
         </div>
       </aside>
 
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
         <header className="lg:hidden flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
           <button 
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => setMobileOpen(true)}
             className="p-1 rounded"
             style={{ color: "var(--text-secondary)" }}
             aria-label="Open navigation"
