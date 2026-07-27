@@ -41,16 +41,15 @@
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-family: "IBM Plex Sans", system-ui, sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    letter-spacing: 0.01em;
   }
 
   ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -68,20 +67,22 @@
 }
 
 @layer components {
+  /* ── Panel — the core container ── */
   .panel {
-    @apply rounded-lg border;
+    @apply rounded-xl border;
     background: var(--bg-card);
     border-color: var(--border);
   }
 
   .panel-header {
-    @apply flex items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-widest;
+    @apply flex items-center justify-between px-5 py-3.5 text-sm font-semibold uppercase tracking-wider;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-subtle);
   }
 
+  /* ── Badges ── */
   .badge {
-    @apply inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider;
+    @apply inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wider;
   }
 
   .badge-bug {
@@ -138,8 +139,9 @@
     color: var(--status-critical);
   }
 
+  /* ── Buttons ── */
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all duration-150;
+    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-150;
     background: var(--accent);
     color: var(--bg-primary);
   }
@@ -158,7 +160,7 @@
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-150;
+    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150;
     color: var(--text-secondary);
     background: transparent;
   }
@@ -173,32 +175,12 @@
     outline-offset: 2px;
   }
 
-  .stat-card {
-    @apply panel flex flex-col gap-1 p-4;
-  }
-
-  .stat-value {
-    @apply text-2xl font-bold tabular-nums;
-    color: var(--text-primary);
-    font-family: "IBM Plex Mono", monospace;
-    letter-spacing: -0.02em;
-  }
-
-  .stat-label {
-    @apply text-[11px] font-semibold uppercase tracking-widest;
-    color: var(--text-muted);
-  }
-
-  .stat-delta {
-    @apply text-[11px] font-medium;
-  }
-
+  /* ── Code font utility ── */
   .code-font {
     font-family: "IBM Plex Mono", monospace;
-    font-size: 11px;
   }
 
-  /* Line clamp */
+  /* ── Line clamp ── */
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -207,38 +189,10 @@
   }
 }
 
-/* Status band — top-edge color indicator on cards */
-.status-band {
-  position: relative;
-}
-.status-band::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--band-color, var(--border));
-}
-
-/* Glow ring for active elements */
-.glow-ring {
-  box-shadow: 0 0 0 1px var(--accent), 0 0 12px var(--accent-glow);
-}
-
 /* Skeleton loading */
 .skeleton {
-  @apply animate-pulse rounded;
+  @apply animate-pulse rounded-lg;
   background: var(--border-subtle);
-}
-
-/* Chart tooltip */
-.recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: var(--bg-elevated) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
-  font-size: 12px !important;
 }
 
 /* Reduced motion */

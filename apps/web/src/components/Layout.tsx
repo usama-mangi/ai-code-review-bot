@@ -15,134 +15,133 @@ export function Layout() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const currentPage = NAV.find(n => n.to === location.pathname)?.label ?? "";
+  const currentPage = NAV.find(n => n.to === location.pathname)?.label ?? "Dashboard";
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg-primary)" }}>
-      {/* Icon rail — desktop only */}
-      <aside 
-        className="hidden lg:flex flex-col items-center w-12 flex-shrink-0 border-r py-3 gap-1"
-        style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}
-      >
-        <div className="w-8 h-8 rounded flex items-center justify-center mb-3" style={{ background: "var(--accent-dim)" }}>
-          <img src="/favicon.png" alt="Logo" className="w-4.5 h-4.5 object-contain" />
-        </div>
+      {/* ── Sidebar — 200px on desktop ── */}
+      <aside className="hidden lg:flex flex-col w-[200px] flex-shrink-0 border-r"
+        style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
         
-        {NAV.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === "/"}
-            className={({ isActive }) => clsx(
-              "w-9 h-9 flex items-center justify-center rounded transition-colors relative",
-              isActive ? "text-[var(--accent)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-            )}
-            style={({ isActive }) => isActive ? { background: "var(--accent-dim)" } : undefined}
-            title={label}
-            aria-label={label}
-          >
-            <Icon size={16} />
-          </NavLink>
-        ))}
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b" style={{ borderColor: "var(--border-subtle)" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+            <img src="/favicon.png" alt="Logo" className="w-5 h-5 object-contain" />
+          </div>
+          <div>
+            <p className="text-sm font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Code Review</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>AI Bot</p>
+          </div>
+        </div>
 
-        <div className="flex-1" />
-
-        <a
-          href="https://github.com/apps/code-qa-review-bot"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-9 h-9 flex items-center justify-center rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-          title="Install App"
-          aria-label="Install App on GitHub"
-        >
-          <ExternalLink size={14} />
-        </a>
-
-        {user && (
-          <div className="relative group">
-            <button className="w-9 h-9 flex items-center justify-center rounded overflow-hidden" style={{ background: "var(--bg-card)" }}>
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
-              ) : (
-                <UserIcon size={14} style={{ color: "var(--text-muted)" }} />
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-1">
+          {NAV.map(({ to, icon: Icon, label }) => (
+            <NavLink key={to} to={to} end={to === "/"}
+              className={({ isActive }) => clsx(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                isActive ? "text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               )}
-            </button>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 rounded-md border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 whitespace-nowrap"
-              style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}
+              style={({ isActive }) => isActive ? { background: "var(--accent-dim)" } : undefined}
             >
-              <p className="text-[10px] font-semibold mb-1.5" style={{ color: "var(--text-primary)" }}>{user.username}</p>
-              <button onClick={logout} className="flex items-center gap-1.5 text-[10px] w-full" style={{ color: "var(--status-critical)" }}>
-                <LogOut size={10} /> Sign out
+              <Icon size={18} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Bottom section */}
+        <div className="p-3 border-t space-y-2" style={{ borderColor: "var(--border-subtle)" }}>
+          <a href="https://github.com/apps/code-qa-review-bot" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+            <ExternalLink size={16} />
+            Install App
+          </a>
+          
+          {user && (
+            <div className="flex items-center gap-2.5 px-3 py-2">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.username} className="w-7 h-7 rounded-lg" />
+              ) : (
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "var(--bg-card)" }}>
+                  <UserIcon size={14} style={{ color: "var(--text-muted)" }} />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{user.username}</p>
+              </div>
+              <button onClick={logout} className="p-1 rounded transition-colors hover:bg-[var(--bg-card)]"
+                style={{ color: "var(--text-muted)" }} aria-label="Sign out">
+                <LogOut size={14} />
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </aside>
 
-      {/* Mobile overlay */}
+      {/* ── Mobile overlay ── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Mobile drawer */}
+      {/* ── Mobile drawer ── */}
       <aside className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-52 flex flex-col border-r transition-transform duration-200 lg:hidden",
+        "fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r transition-transform duration-200 lg:hidden",
         mobileOpen ? "translate-x-0" : "-translate-x-full"
       )} style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
-        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--border-subtle)" }}>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
-              <img src="/favicon.png" alt="Logo" className="w-4 h-4 object-contain" />
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--border-subtle)" }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+              <img src="/favicon.png" alt="Logo" className="w-5 h-5 object-contain" />
             </div>
-            <span className="text-[11px] font-bold tracking-wider" style={{ color: "var(--text-primary)" }}>CODE REVIEW</span>
+            <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Code Review</span>
           </div>
           <button onClick={() => setMobileOpen(false)} style={{ color: "var(--text-muted)" }} aria-label="Close">
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
-        <nav className="flex-1 p-2 space-y-0.5">
+        <nav className="flex-1 p-3 space-y-1">
           {NAV.map(({ to, icon: Icon, label }) => (
             <NavLink key={to} to={to} end={to === "/"} onClick={() => setMobileOpen(false)}
               className={({ isActive }) => clsx(
-                "flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded transition-colors",
-                isActive ? "text-[var(--accent)]" : "text-[var(--text-muted)]"
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                isActive ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
               )}
               style={({ isActive }) => isActive ? { background: "var(--accent-dim)" } : undefined}
             >
-              <Icon size={14} /> {label}
+              <Icon size={18} /> {label}
             </NavLink>
           ))}
         </nav>
         {user && (
-          <div className="p-3 border-t flex items-center gap-2" style={{ borderColor: "var(--border-subtle)" }}>
-            {user.avatarUrl && <img src={user.avatarUrl} alt="" className="w-6 h-6 rounded" />}
-            <span className="text-[10px] font-semibold flex-1 truncate" style={{ color: "var(--text-primary)" }}>{user.username}</span>
-            <button onClick={logout} style={{ color: "var(--text-muted)" }} aria-label="Logout"><LogOut size={12} /></button>
+          <div className="p-3 border-t flex items-center gap-2.5" style={{ borderColor: "var(--border-subtle)" }}>
+            {user.avatarUrl && <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-lg" />}
+            <span className="text-sm font-medium flex-1 truncate" style={{ color: "var(--text-primary)" }}>{user.username}</span>
+            <button onClick={logout} style={{ color: "var(--text-muted)" }} aria-label="Logout"><LogOut size={16} /></button>
           </div>
         )}
       </aside>
 
-      {/* Main area */}
+      {/* ── Main area ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
-        <header className="flex items-center justify-between h-10 px-4 border-b flex-shrink-0" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setMobileOpen(true)} className="lg:hidden p-0.5" style={{ color: "var(--text-secondary)" }} aria-label="Menu">
-              <Menu size={16} />
-            </button>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>{currentPage || "Dashboard"}</span>
-            </div>
-          </div>
+        <header className="flex items-center justify-between h-14 px-6 border-b flex-shrink-0"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--status-ok)" }} />
-              <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>System OK</span>
+            <button onClick={() => setMobileOpen(true)} className="lg:hidden p-1" style={{ color: "var(--text-secondary)" }} aria-label="Menu">
+              <Menu size={20} />
+            </button>
+            <h1 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>{currentPage}</h1>
+          </div>
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "var(--status-ok)" }} />
+              <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>System OK</span>
             </div>
             {user && (
-              <div className="hidden sm:flex items-center gap-1.5">
-                {user.avatarUrl && <img src={user.avatarUrl} alt="" className="w-5 h-5 rounded" />}
-                <span className="text-[10px] font-medium" style={{ color: "var(--text-secondary)" }}>{user.username}</span>
+              <div className="hidden sm:flex items-center gap-2">
+                {user.avatarUrl && <img src={user.avatarUrl} alt="" className="w-7 h-7 rounded-lg" />}
+                <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>{user.username}</span>
               </div>
             )}
           </div>
