@@ -1,213 +1,112 @@
-import { useState, useEffect } from "react";
-import { 
-  GitPullRequest, 
-  Webhook, 
-  Server, 
-  Bot, 
-  MessageSquareDiff, 
-  Workflow, 
-  TerminalSquare, 
-  Container, 
-  Cloud, 
-  Play, 
-  Pause,
-  Database
-} from "lucide-react";
-import clsx from "clsx";
+import { Settings, Database, Cpu, Bot, GitPullRequest, Monitor, Globe, BarChart3, Shield, Zap } from "lucide-react";
 
-const appSteps = [
-  { id: 1, title: "PR Opened", desc: "Developer creates a new PR on GitHub", icon: GitPullRequest, color: "text-blue-400" },
-  { id: 2, title: "Webhook", desc: "GitHub sends a payload to our API", icon: Webhook, color: "text-purple-400" },
-  { id: 3, title: "Diff Parser", desc: "API parses the raw code diff", icon: Server, color: "text-amber-400" },
-  { id: 4, title: "AI Review", desc: "AI model analyzes code for bugs & style", icon: Bot, color: "text-amber-300" },
-  { id: 5, title: "GitHub Comment", desc: "Bot posts inline comments back to PR", icon: MessageSquareDiff, color: "text-emerald-400" },
+const FLOW = [
+  { icon: GitPullRequest, label: "PR Event", detail: "GitHub fires webhook on PR open/push", color: "var(--accent)" },
+  { icon: Globe, label: "Nginx", detail: "Reverse proxy, SSL termination, rate limiting", color: "var(--text-secondary)" },
+  { icon: Settings, label: "API Server", detail: "Express.js — validates payload, authenticates webhook", color: "var(--accent)" },
+  { icon: Database, label: "Redis Queue", detail: "BullMQ — reliable async job scheduling with retry", color: "var(--status-warn)" },
+  { icon: Cpu, label: "Worker", detail: "Fetches diff via Octokit, builds context, calls AI", color: "var(--accent)" },
+  { icon: Bot, label: "AI Model", detail: "Kimi-K2 via OpenRouter — analyzes code, returns structured review", color: "var(--info)" },
+  { icon: GitPullRequest, label: "Post Comments", detail: "Octokit posts inline review comments on the PR", color: "var(--accent)" },
+  { icon: Database, label: "PostgreSQL", detail: "Drizzle ORM — stores reviews, comments, metrics", color: "var(--status-warn)" },
 ];
 
-const cicdSteps = [
-  { id: 1, title: "Code Pushed", desc: "Developer pushes code to main", icon: TerminalSquare, color: "text-neutral-400" },
-  { id: 2, title: "GitHub Actions", desc: "CI runs type checks and builds", icon: Workflow, color: "text-blue-400" },
-  { id: 3, title: "Docker Build", desc: "Images built and pushed to registry", icon: Container, color: "text-cyan-400" },
-  { id: 4, title: "SSH Deploy", desc: "CD connects to the target VM", icon: Server, color: "text-purple-400" },
-  { id: 5, title: "Zero-Downtime", desc: "VM pulls images and restarts", icon: Cloud, color: "text-emerald-400" },
+const STACK = [
+  { icon: Settings, name: "Bun.js", desc: "Fast JS runtime with native TypeScript", layer: "Runtime" },
+  { icon: Settings, name: "Express.js", desc: "Minimal, flexible HTTP framework", layer: "Backend" },
+  { icon: Database, name: "Redis + BullMQ", desc: "In-memory store, reliable job queues", layer: "Queue" },
+  { icon: Database, name: "PostgreSQL", desc: "ACID-compliant relational database", layer: "Storage" },
+  { icon: Cpu, name: "Drizzle ORM", desc: "TypeScript-first SQL query builder", layer: "ORM" },
+  { icon: Bot, name: "OpenAI API", desc: "Kimi-K2 model via OpenRouter gateway", layer: "AI" },
+  { icon: Settings, name: "Docker", desc: "Containerized deployment for all services", layer: "Deploy" },
+  { icon: Shield, name: "GitHub App", desc: "OAuth + webhook authentication", layer: "Auth" },
 ];
 
 export function Architecture() {
-  const [activeAppStep, setActiveAppStep] = useState(1);
-  const [activeCicdStep, setActiveCicdStep] = useState(1);
-  const [isPlayingApp, setIsPlayingApp] = useState(true);
-  const [isPlayingCicd, setIsPlayingCicd] = useState(true);
-
-  useEffect(() => {
-    if (!isPlayingApp) return;
-    const interval = setInterval(() => {
-      setActiveAppStep((prev) => (prev % appSteps.length) + 1);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [isPlayingApp]);
-
-  useEffect(() => {
-    if (!isPlayingCicd) return;
-    const interval = setInterval(() => {
-      setActiveCicdStep((prev) => (prev % cicdSteps.length) + 1);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [isPlayingCicd]);
-
   return (
-    <div className="max-w-5xl mx-auto p-5 space-y-8">
-      <div>
-        <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>How It Works</h1>
-        <p className="text-xs mt-0.5 max-w-xl" style={{ color: "var(--text-muted)" }}>
-          Architecture of the AI Code Review Bot. Watch the live flow of code reviews and the CI/CD pipeline.
-        </p>
-      </div>
-
-      {/* App Architecture */}
-      <section className="panel overflow-hidden p-0">
-        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
-          <div className="flex items-center gap-2">
-            <img src="/favicon.png" alt="Logo" className="w-4 h-4 object-contain" />
-            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-primary)" }}>PR Flow</h2>
-          </div>
-          <button 
-            onClick={() => setIsPlayingApp(!isPlayingApp)}
-            className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded transition-colors border"
-            style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-muted)" }}
-            aria-label={isPlayingApp ? "Pause" : "Play"}
-          >
-            {isPlayingApp ? <><Pause size={10} /> Pause</> : <><Play size={10} /> Play</>}
-          </button>
+    <div className="h-full overflow-auto p-4 space-y-6">
+      {/* PR Flow — horizontal timeline */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <Zap size={12} style={{ color: "var(--accent)" }} />
+          <h2 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>PR Flow</h2>
+          <span className="text-[9px] code-font" style={{ color: "var(--border)" }}>end-to-end</span>
         </div>
-        
-        <div className="p-6 md:p-8 overflow-x-auto">
-          <div className="min-w-[700px] flex items-center justify-between relative">
-            <div className="absolute top-8 left-8 right-8 h-0.5 -translate-y-1/2 z-0 hidden md:block" style={{ background: "var(--border-subtle)" }}>
-              <div 
-                className="h-full transition-all duration-700 ease-in-out"
-                style={{ width: `${((activeAppStep - 1) / (appSteps.length - 1)) * 100}%`, background: "var(--accent)" }}
-              />
-            </div>
 
-            {appSteps.map((step) => {
-              const Icon = step.icon;
-              const isActive = activeAppStep === step.id;
-              const isPast = step.id < activeAppStep;
-              
-              return (
-                <div key={step.id} className="relative z-10 flex flex-col items-center w-32">
-                  <div 
-                    className={clsx(
-                      "w-16 h-16 rounded-lg flex items-center justify-center border transition-all duration-500",
-                      isActive ? "scale-110" : isPast ? "opacity-70" : "opacity-30"
-                    )}
-                    style={{ 
-                      background: isActive ? "var(--accent-dim)" : "var(--bg-secondary)",
-                      borderColor: isActive ? "var(--accent)" : "var(--border-subtle)"
-                    }}
-                  >
-                    <Icon className={clsx("w-6 h-6 transition-colors duration-500", isActive ? step.color : "text-neutral-500")} />
+        <div className="panel p-4 overflow-x-auto">
+          <div className="flex items-start gap-0 min-w-max">
+            {FLOW.map(({ icon: Icon, label, detail, color }, i) => (
+              <div key={label} className="flex items-start">
+                {/* Node */}
+                <div className="flex flex-col items-center w-24">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center border" 
+                    style={{ borderColor: `${color}33`, background: `${color}10` }}>
+                    <Icon size={16} style={{ color }} />
                   </div>
-                  
-                  <div className="mt-4 text-center">
-                    <h3 className={clsx("text-[11px] font-bold transition-colors", isActive ? "text-white" : "text-neutral-500")}>
-                      {step.title}
-                    </h3>
-                    <p className={clsx("text-[10px] leading-relaxed mt-0.5 transition-opacity max-w-[120px]", isActive ? "opacity-100" : "opacity-0")} style={{ color: "var(--text-muted)" }}>
-                      {step.desc}
-                    </p>
-                  </div>
+                  <p className="text-[10px] font-semibold mt-2 text-center" style={{ color: "var(--text-primary)" }}>{label}</p>
+                  <p className="text-[8px] text-center mt-0.5 max-w-[90px] leading-tight" style={{ color: "var(--text-muted)" }}>{detail}</p>
                 </div>
-              );
-            })}
+                {/* Connector arrow */}
+                {i < FLOW.length - 1 && (
+                  <div className="flex items-center pt-4 px-0.5">
+                    <div className="w-6 h-px" style={{ background: "var(--border)" }} />
+                    <div className="w-0 h-0" style={{ borderLeft: "4px solid var(--border)", borderTop: "3px solid transparent", borderBottom: "3px solid transparent" }} />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CI/CD Pipeline */}
-      <section className="panel overflow-hidden p-0">
-        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
-          <div className="flex items-center gap-2">
-            <Workflow className="w-4 h-4" style={{ color: "var(--status-info)" }} />
-            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-primary)" }}>CI/CD Pipeline</h2>
-          </div>
-          <button 
-            onClick={() => setIsPlayingCicd(!isPlayingCicd)}
-            className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded transition-colors border"
-            style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-muted)" }}
-            aria-label={isPlayingCicd ? "Pause" : "Play"}
-          >
-            {isPlayingCicd ? <><Pause size={10} /> Pause</> : <><Play size={10} /> Play</>}
-          </button>
+      {/* Tech stack — 2-col grid */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <Monitor size={12} style={{ color: "var(--accent)" }} />
+          <h2 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>Tech Stack</h2>
         </div>
-        
-        <div className="p-6 md:p-8 overflow-x-auto">
-          <div className="min-w-[700px] flex items-center justify-between relative">
-            <div className="absolute top-8 left-8 right-8 h-0.5 -translate-y-1/2 z-0 hidden md:block" style={{ background: "var(--border-subtle)" }}>
-              <div 
-                className="h-full bg-cyan-500 transition-all duration-700 ease-in-out"
-                style={{ width: `${((activeCicdStep - 1) / (cicdSteps.length - 1)) * 100}%` }}
-              />
-            </div>
 
-            {cicdSteps.map((step) => {
-              const Icon = step.icon;
-              const isActive = activeCicdStep === step.id;
-              const isPast = step.id < activeCicdStep;
-              
-              return (
-                <div key={step.id} className="relative z-10 flex flex-col items-center w-32">
-                  <div 
-                    className={clsx(
-                      "w-16 h-16 rounded-lg flex items-center justify-center border transition-all duration-500",
-                      isActive ? "scale-110" : isPast ? "opacity-70" : "opacity-30"
-                    )}
-                    style={{ 
-                      background: isActive ? "rgba(6,182,212,0.1)" : "var(--bg-secondary)",
-                      borderColor: isActive ? "rgb(6,182,212)" : "var(--border-subtle)"
-                    }}
-                  >
-                    <Icon className={clsx("w-6 h-6 transition-colors duration-500", isActive ? step.color : "text-neutral-500")} />
-                  </div>
-                  
-                  <div className="mt-4 text-center">
-                    <h3 className={clsx("text-[11px] font-bold transition-colors", isActive ? "text-white" : "text-neutral-500")}>
-                      {step.title}
-                    </h3>
-                    <p className={clsx("text-[10px] leading-relaxed mt-0.5 transition-opacity max-w-[120px]", isActive ? "opacity-100" : "opacity-0")} style={{ color: "var(--text-muted)" }}>
-                      {step.desc}
-                    </p>
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {STACK.map(({ icon: Icon, name, desc, layer }) => (
+            <div key={name} className="panel p-3 flex items-start gap-3">
+              <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style={{ background: "var(--accent-dim)" }}>
+                <Icon size={14} style={{ color: "var(--accent)" }} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-[11px] font-semibold" style={{ color: "var(--text-primary)" }}>{name}</p>
+                  <span className="text-[7px] font-bold uppercase tracking-widest px-1 py-0.5 rounded" style={{ color: "var(--text-muted)", background: "var(--bg-card)" }}>{layer}</span>
                 </div>
-              );
-            })}
+                <p className="text-[9px] mt-0.5" style={{ color: "var(--text-muted)" }}>{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Key decisions */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <BarChart3 size={12} style={{ color: "var(--accent)" }} />
+          <h2 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>Key Decisions</h2>
+        </div>
+        <div className="panel p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-[10px]" style={{ color: "var(--text-secondary)" }}>
+            <div>
+              <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Why BullMQ + Redis?</p>
+              <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>Reliable job queue with automatic retries, rate limiting, and delayed jobs. Redis is battle-tested and fast.</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Why Drizzle ORM?</p>
+              <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>TypeScript-first, no code generation, SQL-like API. Lightweight and fast with excellent migration support.</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Why separate Worker?</p>
+              <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>Decouples webhook handling from AI processing. API stays responsive while worker handles slow AI calls.</p>
+            </div>
           </div>
         </div>
       </section>
-      
-      {/* Stack Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="panel p-4">
-          <Database className="w-5 h-5 mb-3" style={{ color: "var(--text-muted)" }} />
-          <h3 className="text-xs font-bold mb-1" style={{ color: "var(--text-primary)" }}>Backend</h3>
-          <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            Bun + Express + TypeScript on Linux. Docker + PM2 for process management.
-          </p>
-        </div>
-        <div className="panel p-4">
-          <Server className="w-5 h-5 mb-3" style={{ color: "var(--text-muted)" }} />
-          <h3 className="text-xs font-bold mb-1" style={{ color: "var(--text-primary)" }}>Data</h3>
-          <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            PostgreSQL via Drizzle ORM for persistent data. Redis for BullMQ queues and rate limiting.
-          </p>
-        </div>
-        <div className="panel p-4">
-          <Bot className="w-5 h-5 mb-3" style={{ color: "var(--text-muted)" }} />
-          <h3 className="text-xs font-bold mb-1" style={{ color: "var(--text-primary)" }}>AI</h3>
-          <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            Multi-model providers with automatic fallback. Static security pre-scanner at zero API cost.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
