@@ -16,19 +16,19 @@ import {
 import clsx from "clsx";
 
 const appSteps = [
-  { id: 1, title: "1. PR Opened", desc: "Developer creates a new PR on GitHub", icon: GitPullRequest, color: "text-blue-400", bg: "bg-blue-500/10" },
-  { id: 2, title: "2. Webhook", desc: "GitHub sends a payload to our API", icon: Webhook, color: "text-purple-400", bg: "bg-purple-500/10" },
-  { id: 3, title: "3. Diff Parser", desc: "Azure VM API parses the raw code diff", icon: Server, color: "text-brand-400", bg: "bg-brand-500/10" },
-  { id: 4, title: "4. AI Review", desc: "GPT-4o analyzes the code for bugs & style", icon: Bot, color: "text-amber-400", bg: "bg-amber-500/10" },
-  { id: 5, title: "5. GitHub Comment", desc: "Bot posts inline comments back to PR", icon: MessageSquareDiff, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { id: 1, title: "PR Opened", desc: "Developer creates a new PR on GitHub", icon: GitPullRequest, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { id: 2, title: "Webhook", desc: "GitHub sends a payload to our API", icon: Webhook, color: "text-purple-400", bg: "bg-purple-500/10" },
+  { id: 3, title: "Diff Parser", desc: "API parses the raw code diff", icon: Server, color: "text-brand-400", bg: "bg-brand-500/10" },
+  { id: 4, title: "AI Review", desc: "AI model analyzes code for bugs & style", icon: Bot, color: "text-amber-400", bg: "bg-amber-500/10" },
+  { id: 5, title: "GitHub Comment", desc: "Bot posts inline comments back to PR", icon: MessageSquareDiff, color: "text-emerald-400", bg: "bg-emerald-500/10" },
 ];
 
 const cicdSteps = [
-  { id: 1, title: "1. Code Pushed", desc: "Developer pushes code to the main branch", icon: TerminalSquare, color: "text-neutral-400", bg: "bg-neutral-500/10" },
-  { id: 2, title: "2. GitHub Actions", desc: "CI runs type checks and starts building", icon: Workflow, color: "text-blue-400", bg: "bg-blue-500/10" },
-  { id: 3, title: "3. Docker Build", desc: "Images built and pushed to Docker Hub", icon: Container, color: "text-cyan-400", bg: "bg-cyan-500/10" },
-  { id: 4, title: "4. SSH Deploy", desc: "CD connects securely to Azure VM", icon: Server, color: "text-purple-400", bg: "bg-purple-500/10" },
-  { id: 5, title: "5. Azure Start", desc: "VM pulls images & performs zero-downtime restart", icon: Cloud, color: "text-brand-400", bg: "bg-brand-500/10" },
+  { id: 1, title: "Code Pushed", desc: "Developer pushes code to the main branch", icon: TerminalSquare, color: "text-neutral-400", bg: "bg-neutral-500/10" },
+  { id: 2, title: "GitHub Actions", desc: "CI runs type checks and starts building", icon: Workflow, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { id: 3, title: "Docker Build", desc: "Images built and pushed to Docker Hub", icon: Container, color: "text-cyan-400", bg: "bg-cyan-500/10" },
+  { id: 4, title: "SSH Deploy", desc: "CD connects securely to the target VM", icon: Server, color: "text-purple-400", bg: "bg-purple-500/10" },
+  { id: 5, title: "Zero-Downtime Deploy", desc: "VM pulls images & restarts with no downtime", icon: Cloud, color: "text-brand-400", bg: "bg-brand-500/10" },
 ];
 
 export function Architecture() {
@@ -55,26 +55,27 @@ export function Architecture() {
   }, [isPlayingCicd]);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 lg:p-10 space-y-12">
+    <div className="max-w-6xl mx-auto p-6 space-y-12">
       <div className="mb-4">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+        <h1 className="text-3xl font-bold text-white mb-3">
           How It Works
         </h1>
-        <p className="text-neutral-400 max-w-2xl text-lg">
-          Explore the architecture of the AI Code Review Bot. Watch the live simulated flow of code reviews and our CI/CD deployment pipeline.
+        <p className="max-w-2xl text-lg" style={{ color: "var(--text-secondary)" }}>
+          Explore the architecture of the AI Code Review Bot. Watch the live simulated flow of code reviews and the CI/CD deployment pipeline.
         </p>
       </div>
 
       {/* App Architecture Section */}
       <section className="card overflow-hidden p-0">
-        <div className="p-6 border-b border-[var(--border)] flex items-center justify-between" style={{ background: "var(--bg-secondary)" }}>
+        <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: "var(--border)", background: "var(--bg-secondary)" }}>
           <div className="flex items-center gap-3">
             <img src="/favicon.png" alt="App Logo" className="w-6 h-6 object-contain" />
             <h2 className="text-xl font-bold text-white">App Architecture (PR Flow)</h2>
           </div>
           <button 
             onClick={() => setIsPlayingApp(!isPlayingApp)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white rounded-lg transition-colors border focus:outline-none focus:ring-2 focus:ring-brand-500"
+            style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}
             aria-label={isPlayingApp ? "Pause PR flow animation" : "Play PR flow animation"}
           >
             {isPlayingApp ? <><Pause size={14} /> Pause</> : <><Play size={14} /> Play</>}
@@ -83,7 +84,7 @@ export function Architecture() {
         
         <div className="p-8 md:p-12 overflow-x-auto">
           <div className="min-w-[800px] flex items-center justify-between relative">
-            <div className="absolute top-1/2 left-10 right-10 h-1 bg-neutral-800 -translate-y-1/2 z-0 hidden md:block">
+            <div className="absolute top-1/2 left-10 right-10 h-1 -translate-y-1/2 z-0 hidden md:block" style={{ background: "var(--border)" }}>
               <div 
                 className="h-full bg-brand-500 transition-all duration-700 ease-in-out"
                 style={{ width: `${((activeAppStep - 1) / (appSteps.length - 1)) * 100}%` }}
@@ -101,24 +102,19 @@ export function Architecture() {
                     className={clsx(
                       "w-20 h-20 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl",
                       isActive ? `border-transparent ${step.bg} scale-110 ring-4 ring-brand-500/30` :
-                      isPast   ? "border-brand-500/50 bg-neutral-900" :
-                                 "border-neutral-800 bg-neutral-900 opacity-50 grayscale"
+                      isPast   ? "border-brand-500/50" :
+                                 "opacity-50 grayscale"
                     )}
+                    style={!isActive ? { background: "var(--bg-secondary)", borderColor: isActive ? undefined : "var(--border)" } : undefined}
                   >
                     <Icon className={clsx("w-8 h-8 transition-colors duration-500", isActive ? step.color : (isPast ? "text-brand-500/80" : "text-neutral-500"))} />
                   </div>
                   
                   <div className="mt-6 text-center h-24">
-                    <span className={clsx(
-                      "text-xs font-bold uppercase tracking-wider mb-1 block transition-colors",
-                      isActive ? step.color : "text-neutral-600"
-                    )}>
-                      Step {step.id}
-                    </span>
                     <h3 className={clsx("font-bold text-sm mb-1 transition-colors", isActive ? "text-white" : "text-neutral-400")}>
                       {step.title}
                     </h3>
-                    <p className={clsx("text-xs leading-relaxed transition-opacity", isActive ? "text-neutral-300 opacity-100" : "text-neutral-600 opacity-0")}>
+                    <p className={clsx("text-xs leading-relaxed transition-opacity", isActive ? "opacity-100" : "opacity-0")} style={{ color: isActive ? "var(--text-secondary)" : "var(--text-muted)" }}>
                       {step.desc}
                     </p>
                   </div>
@@ -131,14 +127,15 @@ export function Architecture() {
 
       {/* DevOps Architecture Section */}
       <section className="card overflow-hidden p-0">
-         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between" style={{ background: "var(--bg-secondary)" }}>
+         <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: "var(--border)", background: "var(--bg-secondary)" }}>
           <div className="flex items-center gap-3">
             <Workflow className="w-6 h-6 text-cyan-400" />
             <h2 className="text-xl font-bold text-white">DevOps & CI/CD Pipeline</h2>
           </div>
           <button 
             onClick={() => setIsPlayingCicd(!isPlayingCicd)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white rounded-lg transition-colors border focus:outline-none focus:ring-2 focus:ring-brand-500"
+            style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}
             aria-label={isPlayingCicd ? "Pause CI/CD flow animation" : "Play CI/CD flow animation"}
           >
             {isPlayingCicd ? <><Pause size={14} /> Pause</> : <><Play size={14} /> Play</>}
@@ -147,7 +144,7 @@ export function Architecture() {
         
         <div className="p-8 md:p-12 overflow-x-auto">
           <div className="min-w-[800px] flex items-center justify-between relative">
-            <div className="absolute top-1/2 left-10 right-10 h-1 bg-neutral-800 -translate-y-1/2 z-0 hidden md:block">
+            <div className="absolute top-1/2 left-10 right-10 h-1 -translate-y-1/2 z-0 hidden md:block" style={{ background: "var(--border)" }}>
               <div 
                 className="h-full bg-cyan-500 transition-all duration-700 ease-in-out"
                 style={{ width: `${((activeCicdStep - 1) / (cicdSteps.length - 1)) * 100}%` }}
@@ -165,24 +162,19 @@ export function Architecture() {
                     className={clsx(
                       "w-20 h-20 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl",
                       isActive ? `border-transparent ${step.bg} scale-110 ring-4 ring-cyan-500/30` :
-                      isPast   ? "border-cyan-500/50 bg-neutral-900" :
-                                 "border-neutral-800 bg-neutral-900 opacity-50 grayscale"
+                      isPast   ? "border-cyan-500/50" :
+                                 "opacity-50 grayscale"
                     )}
+                    style={!isActive ? { background: "var(--bg-secondary)", borderColor: isActive ? undefined : "var(--border)" } : undefined}
                   >
                     <Icon className={clsx("w-8 h-8 transition-colors duration-500", isActive ? step.color : (isPast ? "text-cyan-500/80" : "text-neutral-500"))} />
                   </div>
                   
                   <div className="mt-6 text-center h-24">
-                    <span className={clsx(
-                      "text-xs font-bold uppercase tracking-wider mb-1 block transition-colors",
-                      isActive ? step.color : "text-neutral-600"
-                    )}>
-                      Step {step.id}
-                    </span>
                     <h3 className={clsx("font-bold text-sm mb-1 transition-colors", isActive ? "text-white" : "text-neutral-400")}>
                       {step.title}
                     </h3>
-                    <p className={clsx("text-xs leading-relaxed transition-opacity", isActive ? "text-neutral-300 opacity-100" : "text-neutral-600 opacity-0")}>
+                    <p className={clsx("text-xs leading-relaxed transition-opacity", isActive ? "opacity-100" : "opacity-0")} style={{ color: isActive ? "var(--text-secondary)" : "var(--text-muted)" }}>
                       {step.desc}
                     </p>
                   </div>
@@ -196,24 +188,24 @@ export function Architecture() {
       {/* Stack Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
         <div className="card">
-          <Database className="w-8 h-8 text-neutral-400 mb-4" />
+          <Database className="w-8 h-8 mb-4" style={{ color: "var(--text-muted)" }} />
           <h3 className="text-white font-bold mb-2">Backend Services</h3>
-          <p className="text-sm text-neutral-400 leading-relaxed">
-            Bun + Express + TypeScript running on an Azure Linux VM. Managed reliably by PM2/Docker.
+          <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            Bun + Express + TypeScript running on a Linux VM. Managed reliably by PM2/Docker.
           </p>
         </div>
         <div className="card">
-          <Server className="w-8 h-8 text-neutral-400 mb-4" />
+          <Server className="w-8 h-8 mb-4" style={{ color: "var(--text-muted)" }} />
           <h3 className="text-white font-bold mb-2">Databases</h3>
-          <p className="text-sm text-neutral-400 leading-relaxed">
+          <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             Drizzle ORM interacting with PostgreSQL for persistent data (Reviews, Users, Repositories), and Redis for rate-limiting & BullMQ queueing.
           </p>
         </div>
         <div className="card">
-          <Workflow className="w-8 h-8 text-neutral-400 mb-4" />
+          <Workflow className="w-8 h-8 mb-4" style={{ color: "var(--text-muted)" }} />
           <h3 className="text-white font-bold mb-2">AI Integration</h3>
-          <p className="text-sm text-neutral-400 leading-relaxed">
-            GPT-4o / advanced models systematically evaluate code diffs for logical bugs, stylistic issues, and security vulnerabilities.
+          <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            Multi-model AI providers (OpenAI, Anthropic, Google) with automatic fallback evaluate code diffs for logical bugs, stylistic issues, and security vulnerabilities.
           </p>
         </div>
       </div>
