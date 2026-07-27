@@ -24,33 +24,31 @@ const STACK = [
 
 export function Architecture() {
   return (
-    <div className="h-full overflow-auto p-4 space-y-6">
-      {/* PR Flow — horizontal timeline */}
+    <div className="h-full overflow-auto p-6 space-y-8">
+      {/* PR Flow */}
       <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Zap size={12} style={{ color: "var(--accent)" }} />
-          <h2 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>PR Flow</h2>
-          <span className="text-[9px] code-font" style={{ color: "var(--border)" }}>end-to-end</span>
+        <div className="flex items-center gap-3 mb-4">
+          <Zap size={16} style={{ color: "var(--accent)" }} />
+          <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>PR Flow</h2>
+          <span className="text-sm code-font" style={{ color: "var(--text-muted)" }}>end-to-end</span>
         </div>
 
-        <div className="panel p-4 overflow-x-auto">
+        <div className="panel p-6 overflow-x-auto">
           <div className="flex items-start gap-0 min-w-max">
             {FLOW.map(({ icon: Icon, label, detail, color }, i) => (
               <div key={label} className="flex items-start">
-                {/* Node */}
-                <div className="flex flex-col items-center w-24">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center border" 
+                <div className="flex flex-col items-center w-28">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border"
                     style={{ borderColor: `${color}33`, background: `${color}10` }}>
-                    <Icon size={16} style={{ color }} />
+                    <Icon size={20} style={{ color }} />
                   </div>
-                  <p className="text-[10px] font-semibold mt-2 text-center" style={{ color: "var(--text-primary)" }}>{label}</p>
-                  <p className="text-[8px] text-center mt-0.5 max-w-[90px] leading-tight" style={{ color: "var(--text-muted)" }}>{detail}</p>
+                  <p className="text-sm font-semibold mt-3 text-center" style={{ color: "var(--text-primary)" }}>{label}</p>
+                  <p className="text-xs text-center mt-1 max-w-[110px] leading-relaxed" style={{ color: "var(--text-muted)" }}>{detail}</p>
                 </div>
-                {/* Connector arrow */}
                 {i < FLOW.length - 1 && (
-                  <div className="flex items-center pt-4 px-0.5">
-                    <div className="w-6 h-px" style={{ background: "var(--border)" }} />
-                    <div className="w-0 h-0" style={{ borderLeft: "4px solid var(--border)", borderTop: "3px solid transparent", borderBottom: "3px solid transparent" }} />
+                  <div className="flex items-center pt-5 px-1">
+                    <div className="w-8 h-px" style={{ background: "var(--border)" }} />
+                    <div className="w-0 h-0" style={{ borderLeft: "5px solid var(--border)", borderTop: "3px solid transparent", borderBottom: "3px solid transparent" }} />
                   </div>
                 )}
               </div>
@@ -59,25 +57,25 @@ export function Architecture() {
         </div>
       </section>
 
-      {/* Tech stack — 2-col grid */}
+      {/* Tech stack */}
       <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Monitor size={12} style={{ color: "var(--accent)" }} />
-          <h2 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>Tech Stack</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <Monitor size={16} style={{ color: "var(--accent)" }} />
+          <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Tech Stack</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {STACK.map(({ icon: Icon, name, desc, layer }) => (
-            <div key={name} className="panel p-3 flex items-start gap-3">
-              <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style={{ background: "var(--accent-dim)" }}>
-                <Icon size={14} style={{ color: "var(--accent)" }} />
+            <div key={name} className="panel p-5 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--accent-dim)" }}>
+                <Icon size={18} style={{ color: "var(--accent)" }} />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-[11px] font-semibold" style={{ color: "var(--text-primary)" }}>{name}</p>
-                  <span className="text-[7px] font-bold uppercase tracking-widest px-1 py-0.5 rounded" style={{ color: "var(--text-muted)", background: "var(--bg-card)" }}>{layer}</span>
+                <div className="flex items-center gap-2.5">
+                  <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{name}</p>
+                  <span className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md" style={{ color: "var(--text-muted)", background: "var(--bg-secondary)" }}>{layer}</span>
                 </div>
-                <p className="text-[9px] mt-0.5" style={{ color: "var(--text-muted)" }}>{desc}</p>
+                <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{desc}</p>
               </div>
             </div>
           ))}
@@ -86,23 +84,23 @@ export function Architecture() {
 
       {/* Key decisions */}
       <section>
-        <div className="flex items-center gap-2 mb-3">
-          <BarChart3 size={12} style={{ color: "var(--accent)" }} />
-          <h2 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>Key Decisions</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <BarChart3 size={16} style={{ color: "var(--accent)" }} />
+          <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Key Decisions</h2>
         </div>
-        <div className="panel p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-[10px]" style={{ color: "var(--text-secondary)" }}>
+        <div className="panel p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div>
-              <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Why BullMQ + Redis?</p>
-              <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>Reliable job queue with automatic retries, rate limiting, and delayed jobs. Redis is battle-tested and fast.</p>
+              <p className="text-base font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Why BullMQ + Redis?</p>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Reliable job queue with automatic retries, rate limiting, and delayed jobs. Redis is battle-tested and fast.</p>
             </div>
             <div>
-              <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Why Drizzle ORM?</p>
-              <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>TypeScript-first, no code generation, SQL-like API. Lightweight and fast with excellent migration support.</p>
+              <p className="text-base font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Why Drizzle ORM?</p>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>TypeScript-first, no code generation, SQL-like API. Lightweight and fast with excellent migration support.</p>
             </div>
             <div>
-              <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Why separate Worker?</p>
-              <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>Decouples webhook handling from AI processing. API stays responsive while worker handles slow AI calls.</p>
+              <p className="text-base font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Why separate Worker?</p>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Decouples webhook handling from AI processing. API stays responsive while worker handles slow AI calls.</p>
             </div>
           </div>
         </div>
