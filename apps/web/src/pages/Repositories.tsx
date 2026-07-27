@@ -26,7 +26,6 @@ export function Repositories() {
       setRepositories(res.data);
     } catch (err: any) {
       console.error("Failed to fetch repositories:", err);
-      // If unauthorized, it could be the token is missing
       if (err.response?.status === 401) {
         setError("Your GitHub session has expired or is missing permissions. Please log out and back in.");
       } else {
@@ -39,7 +38,6 @@ export function Repositories() {
 
   const toggleRepository = async (repo: Repository) => {
     try {
-      // Optimistic update
       setRepositories((current) =>
         current.map((r) =>
           r.githubId === repo.githubId ? { ...r, enabled: !r.enabled } : r
@@ -53,7 +51,6 @@ export function Repositories() {
       });
     } catch (err) {
       console.error("Failed to toggle repository:", err);
-      // Revert on failure
       setRepositories((current) =>
         current.map((r) =>
           r.githubId === repo.githubId ? { ...r, enabled: repo.enabled } : r
@@ -76,7 +73,7 @@ export function Repositories() {
         <div className="flex items-center justify-between w-full mb-3">
           <div className="flex items-center gap-3">
             <Settings className="w-8 h-8 text-brand-400" />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-white">
               Repositories
             </h1>
           </div>
@@ -97,17 +94,27 @@ export function Repositories() {
         {error && (
           <div className="mt-4 p-4 border border-red-500/30 bg-red-500/10 rounded-xl flex items-start gap-3 text-red-400">
             <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p className="text-sm">{error}</p>
+            <div className="flex-1">
+              <p className="text-sm">{error}</p>
+              <button
+                onClick={fetchRepositories}
+                className="mt-2 text-xs font-medium text-red-300 hover:text-red-200 underline underline-offset-2"
+              >
+                Try again
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+      <div className="card">
         {repositories.length === 0 && !error ? (
-          <div className="p-12 text-center text-neutral-400 flex flex-col items-center">
-            <GitMerge className="w-12 h-12 mb-4 text-neutral-600" />
+          <div className="p-12 text-center flex flex-col items-center">
+            <div className="w-14 h-14 rounded-2xl bg-brand-600/10 flex items-center justify-center mb-4">
+              <GitMerge size={24} className="text-brand-400" />
+            </div>
             <p className="text-lg font-medium text-neutral-300">No repositories found</p>
-            <p className="text-sm mt-2 max-w-sm">
+            <p className="text-sm mt-2 max-w-sm" style={{ color: "var(--text-muted)" }}>
               You haven't installed the GitHub App on any repositories yet, or you don't have access to them.
             </p>
             <a 
@@ -122,7 +129,7 @@ export function Repositories() {
         ) : (
           <ul className="divide-y divide-[var(--border)]">
             {repositories.map((repo) => (
-              <li key={repo.githubId} className="flex items-center justify-between p-4 sm:p-5 hover:bg-neutral-800/20 transition-colors">
+              <li key={repo.githubId} className="flex items-center justify-between p-4 sm:p-5 hover:bg-[var(--bg-card-hover)] transition-colors">
                 <div className="flex items-center gap-4">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${repo.enabled ? 'bg-brand-500/10 border-brand-500/20 text-brand-400' : 'bg-neutral-800 border-neutral-700 text-neutral-500'}`}>
                     <GitMerge size={20} />
@@ -141,6 +148,7 @@ export function Repositories() {
                 <button
                   role="switch"
                   aria-checked={repo.enabled}
+                  aria-label={`${repo.enabled ? "Disable" : "Enable"} code reviews for ${repo.fullName}`}
                   onClick={() => toggleRepository(repo)}
                   className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
                     repo.enabled ? "bg-brand-500" : "bg-neutral-700"

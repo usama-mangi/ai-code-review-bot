@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
-// --- App Flow Data ---
 const appSteps = [
   { id: 1, title: "1. PR Opened", desc: "Developer creates a new PR on GitHub", icon: GitPullRequest, color: "text-blue-400", bg: "bg-blue-500/10" },
   { id: 2, title: "2. Webhook", desc: "GitHub sends a payload to our API", icon: Webhook, color: "text-purple-400", bg: "bg-purple-500/10" },
@@ -24,7 +23,6 @@ const appSteps = [
   { id: 5, title: "5. GitHub Comment", desc: "Bot posts inline comments back to PR", icon: MessageSquareDiff, color: "text-emerald-400", bg: "bg-emerald-500/10" },
 ];
 
-// --- DevOps Flow Data ---
 const cicdSteps = [
   { id: 1, title: "1. Code Pushed", desc: "Developer pushes code to the main branch", icon: TerminalSquare, color: "text-neutral-400", bg: "bg-neutral-500/10" },
   { id: 2, title: "2. GitHub Actions", desc: "CI runs type checks and starts building", icon: Workflow, color: "text-blue-400", bg: "bg-blue-500/10" },
@@ -40,16 +38,14 @@ export function Architecture() {
   const [isPlayingApp, setIsPlayingApp] = useState(true);
   const [isPlayingCicd, setIsPlayingCicd] = useState(true);
 
-  // App cycle
   useEffect(() => {
     if (!isPlayingApp) return;
     const interval = setInterval(() => {
       setActiveAppStep((prev) => (prev % appSteps.length) + 1);
-    }, 2500); // 2.5s per step
+    }, 2500);
     return () => clearInterval(interval);
   }, [isPlayingApp]);
 
-  // CI/CD cycle
   useEffect(() => {
     if (!isPlayingCicd) return;
     const interval = setInterval(() => {
@@ -61,7 +57,7 @@ export function Architecture() {
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 lg:p-10 space-y-12">
       <div className="mb-4">
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent mb-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
           How It Works
         </h1>
         <p className="text-neutral-400 max-w-2xl text-lg">
@@ -69,16 +65,17 @@ export function Architecture() {
         </p>
       </div>
 
-      {/* --- App Architecture Section --- */}
-      <section className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-neutral-900/40">
+      {/* App Architecture Section */}
+      <section className="card overflow-hidden p-0">
+        <div className="p-6 border-b border-[var(--border)] flex items-center justify-between" style={{ background: "var(--bg-secondary)" }}>
           <div className="flex items-center gap-3">
             <img src="/favicon.png" alt="App Logo" className="w-6 h-6 object-contain" />
             <h2 className="text-xl font-bold text-white">App Architecture (PR Flow)</h2>
           </div>
           <button 
             onClick={() => setIsPlayingApp(!isPlayingApp)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700"
+            className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            aria-label={isPlayingApp ? "Pause PR flow animation" : "Play PR flow animation"}
           >
             {isPlayingApp ? <><Pause size={14} /> Pause</> : <><Play size={14} /> Play</>}
           </button>
@@ -86,8 +83,6 @@ export function Architecture() {
         
         <div className="p-8 md:p-12 overflow-x-auto">
           <div className="min-w-[800px] flex items-center justify-between relative">
-            
-            {/* The animated connection line */}
             <div className="absolute top-1/2 left-10 right-10 h-1 bg-neutral-800 -translate-y-1/2 z-0 hidden md:block">
               <div 
                 className="h-full bg-brand-500 transition-all duration-700 ease-in-out"
@@ -102,7 +97,6 @@ export function Architecture() {
               
               return (
                 <div key={step.id} className="relative z-10 flex flex-col items-center w-40">
-                  {/* Step Node */}
                   <div 
                     className={clsx(
                       "w-20 h-20 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl",
@@ -114,7 +108,6 @@ export function Architecture() {
                     <Icon className={clsx("w-8 h-8 transition-colors duration-500", isActive ? step.color : (isPast ? "text-brand-500/80" : "text-neutral-500"))} />
                   </div>
                   
-                  {/* Step Content */}
                   <div className="mt-6 text-center h-24">
                     <span className={clsx(
                       "text-xs font-bold uppercase tracking-wider mb-1 block transition-colors",
@@ -136,16 +129,17 @@ export function Architecture() {
         </div>
       </section>
 
-      {/* --- DevOps Architecture Section --- */}
-      <section className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-2xl">
-         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-neutral-900/40">
+      {/* DevOps Architecture Section */}
+      <section className="card overflow-hidden p-0">
+         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between" style={{ background: "var(--bg-secondary)" }}>
           <div className="flex items-center gap-3">
             <Workflow className="w-6 h-6 text-cyan-400" />
             <h2 className="text-xl font-bold text-white">DevOps & CI/CD Pipeline</h2>
           </div>
           <button 
             onClick={() => setIsPlayingCicd(!isPlayingCicd)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700"
+            className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-white rounded-lg transition-colors border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            aria-label={isPlayingCicd ? "Pause CI/CD flow animation" : "Play CI/CD flow animation"}
           >
             {isPlayingCicd ? <><Pause size={14} /> Pause</> : <><Play size={14} /> Play</>}
           </button>
@@ -153,8 +147,6 @@ export function Architecture() {
         
         <div className="p-8 md:p-12 overflow-x-auto">
           <div className="min-w-[800px] flex items-center justify-between relative">
-            
-            {/* The animated connection line */}
             <div className="absolute top-1/2 left-10 right-10 h-1 bg-neutral-800 -translate-y-1/2 z-0 hidden md:block">
               <div 
                 className="h-full bg-cyan-500 transition-all duration-700 ease-in-out"
@@ -201,23 +193,23 @@ export function Architecture() {
         </div>
       </section>
       
-      {/* Underlying Stack Overview */}
+      {/* Stack Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-        <div className="bg-neutral-900/50 border border-neutral-800 p-6 rounded-2xl">
+        <div className="card">
           <Database className="w-8 h-8 text-neutral-400 mb-4" />
           <h3 className="text-white font-bold mb-2">Backend Services</h3>
           <p className="text-sm text-neutral-400 leading-relaxed">
             Bun + Express + TypeScript running on an Azure Linux VM. Managed reliably by PM2/Docker.
           </p>
         </div>
-        <div className="bg-neutral-900/50 border border-neutral-800 p-6 rounded-2xl">
+        <div className="card">
           <Server className="w-8 h-8 text-neutral-400 mb-4" />
           <h3 className="text-white font-bold mb-2">Databases</h3>
           <p className="text-sm text-neutral-400 leading-relaxed">
             Drizzle ORM interacting with PostgreSQL for persistent data (Reviews, Users, Repositories), and Redis for rate-limiting & BullMQ queueing.
           </p>
         </div>
-        <div className="bg-neutral-900/50 border border-neutral-800 p-6 rounded-2xl">
+        <div className="card">
           <Workflow className="w-8 h-8 text-neutral-400 mb-4" />
           <h3 className="text-white font-bold mb-2">AI Integration</h3>
           <p className="text-sm text-neutral-400 leading-relaxed">
@@ -225,7 +217,6 @@ export function Architecture() {
           </p>
         </div>
       </div>
-      
     </div>
   );
 }
