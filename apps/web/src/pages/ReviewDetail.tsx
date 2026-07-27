@@ -13,7 +13,7 @@ const SEV: Record<string, { color: string; bg: string }> = {
 };
 
 export function ReviewDetail() {
-  const { reviewId } = useParams();
+  const { id } = useParams();
   const [data, setData] = useState<ReviewDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,13 +21,13 @@ export function ReviewDetail() {
   const [severityFilter, setSeverityFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!reviewId) return;
+    if (!id) return;
     setLoading(true); setError(null);
-    apiClient.getReview(Number(reviewId))
+    apiClient.getReview(Number(id))
       .then(d => { setData(d); })
       .catch(() => setError("Failed to load review."))
       .finally(() => setLoading(false));
-  }, [reviewId]);
+  }, [id]);
 
   const fileGroups = useMemo(() => {
     if (!data) return [];
