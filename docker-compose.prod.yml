@@ -46,12 +46,6 @@ services:
       retries: 3
       start_period: 10s
 
-  web:
-    image: ${DOCKER_USERNAME}/codereview-web:${IMAGE_TAG:-latest}
-    restart: always
-    ports:
-      - "8080:80"
-
 volumes:
   postgres_data:
   redis_data:

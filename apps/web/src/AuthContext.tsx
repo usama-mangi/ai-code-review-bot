@@ -2,9 +2,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL || "/api";
+
 // Create an Axios instance that always sends cookies
 export const api = axios.create({
-  baseURL: "/api",
+  baseURL: API_URL,
   withCredentials: true,
 });
 

@@ -60,24 +60,6 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:${{ github.sha }}
             ${{ secrets.DOCKER_USERNAME }}/codereview-api:latest
 
-      - name: Build Web image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./apps/web
-          push: false
-          load: true
-          provenance: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/codereview-web:${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/codereview-web:latest
-
-      - name: Push Web image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/codereview-web:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/codereview-web:latest
-
   # ─── CD: Deploy to Azure VM ───────────────────────────────────────────────────
   deploy:
     name: Deploy to Azure VM
@@ -136,10 +118,6 @@ jobs:
             # Rename .env.prod to .env for Docker Compose
             mv .env.prod .env
 
-            # Override FRONTEND_URL with nip.io domain (auto-detects VM IP)
-            VM_IP=$(curl -s http://checkip.amazonaws.com || curl -s ifconfig.me)
-            sed -i "s|^FRONTEND_URL=.*|FRONTEND_URL=http://code-review.${VM_IP}.nip.io|" .env
-
             # Pull new images
             docker compose -f docker-compose.prod.yml pull
 
@@ -153,7 +131,7 @@ jobs:
             docker compose -f docker-compose.prod.yml run --rm api bun run db:push
 
             # Rolling restart app containers only (zero downtime)
-            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate api web
+            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate api
 
             # Configure Nginx reverse proxy
             if ! command -v nginx &> /dev/null; then
