@@ -1,215 +1,179 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiClient, type Review, type PaginatedResponse } from "../api/client";
+import { apiClient, type Review } from "../api/client";
 import { format } from "date-fns";
-import { GitPullRequest, ExternalLink, ChevronLeft, ChevronRight, AlertCircle, RefreshCw } from "lucide-react";
+import { GitPullRequest, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 
+const STATUS: Record<string, { color: string; bg: string; label: string }> = {
+  completed: { color: "var(--status-ok)", bg: "rgba(76,175,80,0.1)", label: "OK" },
+  pending: { color: "var(--status-warn)", bg: "rgba(255,193,7,0.1)", label: "PEND" },
+  processing: { color: "var(--accent)", bg: "var(--accent-dim)", label: "PROC" },
+  failed: { color: "var(--status-critical)", bg: "rgba(248,113,113,0.1)", label: "FAIL" },
+};
+
 export function ReviewHistory() {
-  const [data, setData] = useState<PaginatedResponse<Review> | null>(null);
-  const [page, setPage] = useState(1);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
-  const fetchReviews = (p: number) => {
-    setLoading(true);
-    setError(null);
-    apiClient
-      .getReviews(p, 20)
-      .then(setData)
-      .catch((err) => {
-        console.error("Failed to load reviews:", err);
-        setError("Failed to load review history. Check your connection and try again.");
-      })
+  const load = (p: number) => {
+    setLoading(true); setError(null);
+    apiClient.getReviews(p, 12)
+      .then(res => { setReviews(res.data); setTotalPages(res.pagination.pages); })
+      .catch(() => setError("Failed to load reviews."))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    fetchReviews(page);
-  }, [page]);
+  useEffect(() => { load(page); }, [page]);
 
-  if (error && !loading) {
-    return (
-      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(248,113,113,0.1)" }}>
-          <AlertCircle size={22} style={{ color: "var(--status-critical)" }} />
-        </div>
-        <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Couldn't load reviews</p>
-        <p className="text-xs text-center max-w-xs mb-4" style={{ color: "var(--text-muted)" }}>{error}</p>
-        <button onClick={() => fetchReviews(page)} className="btn-primary gap-1.5">
-          <RefreshCw size={12} /> Try Again
-        </button>
-      </div>
-    );
-  }
+  const filtered = statusFilter ? reviews.filter(r => r.status === statusFilter) : reviews;
+  const s = (status: string) => STATUS[status] ?? STATUS.pending;
 
   return (
-    <div className="p-5 space-y-4">
-      <div>
-        <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Review History</h1>
-        <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>All pull requests reviewed by the bot</p>
+    <div className="h-full flex flex-col overflow-hidden">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between h-10 px-4 border-b flex-shrink-0" style={{ borderColor: "var(--border-subtle)" }}>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Reviews</span>
+          <span className="text-[10px] code-font" style={{ color: "var(--border)" }}>#{page}/{totalPages}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {["all", "completed", "pending", "processing", "failed"].map(st => (
+            <button key={st}
+              onClick={() => setStatusFilter(st === "all" ? null : st)}
+              className={clsx("text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded transition-colors",
+                (st === "all" && !statusFilter) || statusFilter === st
+                  ? "text-[var(--accent)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+              )}
+              style={((st === "all" && !statusFilter) || statusFilter === st) ? { background: "var(--accent-dim)" } : undefined}
+            >
+              {st}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Desktop table */}
-      <div className="panel overflow-hidden p-0 hidden md:block">
-        <table className="w-full">
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
-              {["Pull Request", "Repository", "Author", "Status", "Files", "Date"].map((h) => (
-                <th key={h} className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading
-              ? [...Array(8)].map((_, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                    {[...Array(6)].map((_, j) => (
-                      <td key={j} className="px-4 py-2.5">
-                        <div className="skeleton h-3.5 w-full rounded" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : data?.data.map((review) => (
-                  <ReviewTableRow key={review.id} review={review} />
-                ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile cards */}
-      <div className="md:hidden space-y-2">
-        {loading
-          ? [...Array(5)].map((_, i) => (
-              <div key={i} className="panel p-3 space-y-2">
-                <div className="skeleton h-4 w-3/4 rounded" />
-                <div className="skeleton h-3 w-1/2 rounded" />
-              </div>
-            ))
-          : data?.data.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-      </div>
-
-      {!loading && data?.data.length === 0 && (
-        <div className="panel flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: "var(--accent-dim)" }}>
-            <GitPullRequest size={18} style={{ color: "var(--accent)" }} />
-          </div>
-          <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-primary)" }}>No reviews yet</p>
-          <p className="text-[11px] max-w-xs mb-3" style={{ color: "var(--text-muted)" }}>
-            Install the bot on a repository and open a pull request.
-          </p>
-          <Link to="/repositories" className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--accent)" }}>
-            Set up repos →
-          </Link>
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ background: "rgba(248,113,113,0.05)", borderColor: "var(--border-subtle)" }}>
+          <AlertCircle size={12} style={{ color: "var(--status-critical)" }} />
+          <span className="text-[10px]" style={{ color: "var(--status-critical)" }}>{error}</span>
+          <button onClick={() => load(page)} className="text-[10px] underline ml-auto" style={{ color: "var(--text-muted)" }}>Retry</button>
         </div>
       )}
 
-      {/* Pagination */}
-      {data && data.pagination.pages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-            {(page - 1) * 20 + 1}–{Math.min(page * 20, data.pagination.total)} of {data.pagination.total}
-          </p>
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="btn-ghost disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Previous page"
-            >
-              <ChevronLeft size={14} /> Prev
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(data.pagination.pages, p + 1))}
-              disabled={page === data.pagination.pages}
-              className="btn-ghost disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Next page"
-            >
-              Next <ChevronRight size={14} />
-            </button>
+      {/* Table */}
+      <div className="flex-1 overflow-auto">
+        {loading ? (
+          <div className="p-4 space-y-1">{[1,2,3,4,5,6].map(i => <div key={i} className="skeleton h-10 w-full" />)}</div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
+            <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+              <GitPullRequest size={16} style={{ color: "var(--accent)" }} />
+            </div>
+            <p className="text-[11px] font-semibold" style={{ color: "var(--text-primary)" }}>No reviews found</p>
+            <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>
+              {statusFilter ? `No "${statusFilter}" reviews yet` : "Open a PR to start"}
+            </p>
           </div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <table className="w-full hidden md:table">
+              <thead>
+                <tr className="border-b" style={{ borderColor: "var(--border-subtle)" }}>
+                  {["PR", "Status", "Files", "Repo", "Created"].map(h => (
+                    <th key={h} className="px-3 py-2 text-left text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(r => {
+                  const status = s(r.status);
+                  return (
+                    <tr key={r.id} className="border-b hover:bg-[var(--bg-card-hover)] transition-colors" style={{ borderColor: "var(--border-subtle)" }}>
+                      <td className="px-3 py-2">
+                        <Link to={`/reviews/${r.id}`} className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+                            <GitPullRequest size={10} style={{ color: "var(--accent)" }} />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-medium" style={{ color: "var(--text-primary)" }}>{r.prTitle ?? `PR #${r.prNumber}`}</p>
+                            <p className="text-[9px] code-font" style={{ color: "var(--text-muted)" }}>#{r.prNumber}</p>
+                          </div>
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded"
+                          style={{ color: status.color, background: status.bg }}>
+                          <span className="w-1 h-1 rounded-full" style={{ background: status.color }} />
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="text-[11px] font-semibold tabular-nums" style={{ fontFamily: "IBM Plex Mono", color: "var(--text-primary)" }}>{r.filesChanged ?? "—"}</span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="text-[9px] code-font" style={{ color: "var(--text-muted)" }}>{r.repoFullName}</span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="text-[9px] code-font" style={{ color: "var(--text-muted)" }}>{format(new Date(r.createdAt), "MMM d, HH:mm")}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Mobile cards */}
+            <div className="md:hidden divide-y" style={{ borderColor: "var(--border-subtle)" }}>
+              {filtered.map(r => {
+                const status = s(r.status);
+                return (
+                  <Link key={r.id} to={`/reviews/${r.id}`} className="block px-4 py-3 hover:bg-[var(--bg-card-hover)] transition-colors">
+                    <div className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "var(--accent-dim)" }}>
+                        <GitPullRequest size={10} style={{ color: "var(--accent)" }} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-medium truncate" style={{ color: "var(--text-primary)" }}>{r.prTitle ?? `PR #${r.prNumber}`}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest px-1 py-0.5 rounded"
+                            style={{ color: status.color, background: status.bg }}>
+                            <span className="w-0.5 h-0.5 rounded-full" style={{ background: status.color }} />
+                            {status.label}
+                          </span>
+                          <span className="text-[9px] code-font" style={{ color: "var(--text-muted)" }}>{r.filesChanged ?? 0} files</span>
+                        </div>
+                        <p className="text-[9px] code-font mt-1" style={{ color: "var(--text-muted)" }}>{r.repoFullName} · {format(new Date(r.createdAt), "MMM d")}</p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 h-10 border-t flex-shrink-0" style={{ borderColor: "var(--border-subtle)" }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="p-1 disabled:opacity-20" style={{ color: "var(--text-muted)" }}>
+            <ChevronLeft size={14} />
+          </button>
+          <span className="text-[10px] code-font tabular-nums" style={{ color: "var(--text-primary)" }}>
+            {page} / {totalPages}
+          </span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="p-1 disabled:opacity-20" style={{ color: "var(--text-muted)" }}>
+            <ChevronRight size={14} />
+          </button>
         </div>
       )}
     </div>
-  );
-}
-
-function ReviewTableRow({ review }: { review: Review }) {
-  return (
-    <tr
-      style={{ borderBottom: "1px solid var(--border-subtle)" }}
-      className="transition-colors"
-      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-card-hover)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-    >
-      <td className="px-4 py-2.5">
-        <Link to={`/reviews/${review.id}`} className="flex items-center gap-2 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] rounded">
-          <GitPullRequest size={12} style={{ color: "var(--accent)" }} className="flex-shrink-0" />
-          <span className="text-xs font-medium truncate max-w-[200px]" style={{ color: "var(--text-primary)" }}>
-            {review.prTitle ?? `PR #${review.prNumber}`}
-          </span>
-          <span className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>#{review.prNumber}</span>
-        </Link>
-      </td>
-      <td className="px-4 py-2.5">
-        <span className="text-[11px] code-font" style={{ color: "var(--text-secondary)" }}>
-          {review.repoFullName ?? "—"}
-        </span>
-      </td>
-      <td className="px-4 py-2.5">
-        <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{review.prAuthor ?? "—"}</span>
-      </td>
-      <td className="px-4 py-2.5">
-        <span className={clsx(`badge-${review.status}`, review.status === "processing" && "animate-pulse")}>
-          {review.status}
-        </span>
-      </td>
-      <td className="px-4 py-2.5">
-        <span className="text-xs code-font" style={{ color: "var(--text-muted)" }}>{review.filesChanged ?? "—"}</span>
-      </td>
-      <td className="px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-            {format(new Date(review.createdAt), "MMM d, HH:mm")}
-          </span>
-          {review.prUrl && (
-            <a href={review.prUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} aria-label="Open PR on GitHub">
-              <ExternalLink size={10} style={{ color: "var(--text-muted)" }} className="hover:text-[var(--accent)] transition-colors" />
-            </a>
-          )}
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-function ReviewCard({ review }: { review: Review }) {
-  return (
-    <Link
-      to={`/reviews/${review.id}`}
-      className="panel block p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <GitPullRequest size={12} style={{ color: "var(--accent)" }} className="flex-shrink-0" />
-          <span className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
-            {review.prTitle ?? `PR #${review.prNumber}`}
-          </span>
-        </div>
-        <span className={`badge-${review.status} flex-shrink-0`}>{review.status}</span>
-      </div>
-      <div className="mt-1.5 flex items-center gap-2 text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-        <span>{review.repoFullName}</span>
-        <span>·</span>
-        <span>{review.prAuthor}</span>
-        <span>·</span>
-        <span>{format(new Date(review.createdAt), "MMM d, HH:mm")}</span>
-      </div>
-    </Link>
   );
 }

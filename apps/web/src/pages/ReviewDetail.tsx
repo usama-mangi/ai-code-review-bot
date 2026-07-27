@@ -2,348 +2,170 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiClient, type ReviewDetail as ReviewDetailType, type Comment } from "../api/client";
 import { format } from "date-fns";
-import { ArrowLeft, GitPullRequest, ExternalLink, FileCode, AlertTriangle, Shield, Lightbulb, Palette, Info, AlertCircle, Search, X } from "lucide-react";
-import clsx from "clsx";
+import { GitPullRequest, AlertCircle, ChevronLeft, FileCode } from "lucide-react";
 
-const SEVERITY_CONFIG: Record<string, { label: string; icon: React.ReactNode; badgeClass: string }> = {
-  bug: { label: "Bug", icon: <AlertTriangle size={11} />, badgeClass: "badge-bug" },
-  security: { label: "Security", icon: <Shield size={11} />, badgeClass: "badge-security" },
-  improvement: { label: "Improve", icon: <Lightbulb size={11} />, badgeClass: "badge-improvement" },
-  style: { label: "Style", icon: <Palette size={11} />, badgeClass: "badge-style" },
-  info: { label: "Info", icon: <Info size={11} />, badgeClass: "badge-info" },
+const SEV: Record<string, { color: string; bg: string }> = {
+  bug: { color: "var(--status-critical)", bg: "rgba(248,113,113,0.08)" },
+  security: { color: "var(--status-warn)", bg: "rgba(251,146,60,0.08)" },
+  improvement: { color: "#fbbf24", bg: "rgba(251,191,36,0.08)" },
+  style: { color: "var(--info)", bg: "rgba(96,165,250,0.08)" },
+  info: { color: "var(--text-muted)", bg: "rgba(160,160,180,0.08)" },
 };
 
-const SEVERITY_ORDER = ["bug", "security", "improvement", "style", "info"];
-
 export function ReviewDetail() {
-  const { id } = useParams<{ id: string }>();
-  const [review, setReview] = useState<ReviewDetailType | null>(null);
+  const { reviewId } = useParams();
+  const [data, setData] = useState<ReviewDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFile, setActiveFile] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeSeverity, setActiveSeverity] = useState<string | null>(null);
+  const [severityFilter, setSeverityFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setError(null);
-    apiClient
-      .getReview(parseInt(id))
-      .then((r) => {
-        setReview(r);
-        const files = [...new Set(r.comments.map((c) => c.filePath))];
-        if (files.length > 0) setActiveFile(files[0]);
-      })
-      .catch((err) => {
-        console.error("Failed to load review:", err);
-        setError("Failed to load review details. It may have been removed or you may not have access.");
-      })
+    if (!reviewId) return;
+    setLoading(true); setError(null);
+    apiClient.getReview(Number(reviewId))
+      .then(d => { setData(d); })
+      .catch(() => setError("Failed to load review."))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [reviewId]);
 
-  const files = useMemo(
-    () => (review ? [...new Set(review.comments.map((c) => c.filePath))] : []),
-    [review]
-  );
+  // Group comments by filePath
+  const fileGroups = useMemo(() => {
+    if (!data) return [];
+    const map = new Map<string, Comment[]>();
+    for (const c of data.comments) {
+      const existing = map.get(c.filePath) ?? [];
+      existing.push(c);
+      map.set(c.filePath, existing);
+    }
+    return Array.from(map.entries()).map(([filePath, comments]) => ({ filePath, comments }));
+  }, [data]);
 
-  const filteredComments = useMemo(() => {
-    if (!review) return [];
-    return review.comments.filter((c) => {
-      const matchesFile = activeFile ? c.filePath === activeFile : true;
-      const matchesSeverity = activeSeverity ? c.severity === activeSeverity : true;
-      const matchesSearch = searchQuery
-        ? c.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.filePath.toLowerCase().includes(searchQuery.toLowerCase())
-        : true;
-      return matchesFile && matchesSeverity && matchesSearch;
-    });
-  }, [review, activeFile, activeSeverity, searchQuery]);
+  const visibleComments = useMemo(() => {
+    let comments = data?.comments ?? [];
+    if (activeFile) comments = comments.filter(c => c.filePath === activeFile);
+    if (severityFilter) comments = comments.filter(c => c.severity === severityFilter);
+    return comments;
+  }, [data, activeFile, severityFilter]);
 
-  if (loading) {
-    return (
-      <div className="p-5 space-y-3">
-        <div className="skeleton h-6 w-48" />
-        <div className="skeleton h-24 w-full" />
-        <div className="skeleton h-48 w-full" />
-      </div>
-    );
-  }
-
-  if (error || !review) {
-    return (
-      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(248,113,113,0.1)" }}>
-          <AlertCircle size={22} style={{ color: "var(--status-critical)" }} />
-        </div>
-        <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Review not found</p>
-        <p className="text-xs text-center max-w-xs mb-4" style={{ color: "var(--text-muted)" }}>
-          {error ?? "This review doesn't exist or you don't have permission to view it."}
-        </p>
-        <Link to="/reviews" className="btn-primary gap-1.5">
-          <ArrowLeft size={12} /> Back to History
-        </Link>
-      </div>
-    );
-  }
-
-  const severityCounts = review.comments.reduce<Record<string, number>>((acc, c) => {
-    acc[c.severity] = (acc[c.severity] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  return (
-    <div className="p-5 space-y-4">
-      {/* Back */}
-      <Link to="/reviews" className="btn-ghost inline-flex text-[11px]">
-        <ArrowLeft size={12} /> Back to History
-      </Link>
-
-      {/* PR Header */}
-      <div className="panel">
-        <div className="p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
-                <GitPullRequest size={16} style={{ color: "var(--accent)" }} />
-              </div>
-              <div>
-                <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                  {review.prTitle ?? `PR #${review.prNumber}`}
-                </h1>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-                    {review.repoFullName}
-                  </span>
-                  <span style={{ color: "var(--border)" }}>·</span>
-                  <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                    by {review.prAuthor}
-                  </span>
-                  <span style={{ color: "var(--border)" }}>·</span>
-                  <span className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-                    {review.commitSha.slice(0, 8)}
-                  </span>
-                  <span className={`badge-${review.status}`}>{review.status}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {review.prUrl && (
-                <a href={review.prUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost text-[11px]">
-                  View PR <ExternalLink size={11} />
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Summary */}
-          {review.summary && (
-            <div className="mt-3 p-3 rounded-md" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)" }}>
-              <p className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>
-                AI Summary
-              </p>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{review.summary}</p>
-            </div>
-          )}
-
-          {/* Severity breakdown */}
-          {Object.keys(severityCounts).length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {Object.entries(severityCounts).map(([sev, count]) => {
-                const cfg = SEVERITY_CONFIG[sev];
-                return (
-                  <span key={sev} className={cfg.badgeClass}>
-                    {cfg.icon} {cfg.label}: {count}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Meta */}
-          <div className="flex gap-4 mt-3 text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-            <span>{review.filesChanged} files</span>
-            <span>{review.comments.length} comments</span>
-            <span>{format(new Date(review.createdAt), "MMM d, yyyy HH:mm")}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Comments Section */}
-      {review.comments.length > 0 ? (
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-3">
-          {/* File sidebar */}
-          <div className="panel xl:col-span-1 p-2 h-fit">
-            <p className="text-[10px] font-semibold uppercase tracking-widest px-2 py-1.5" style={{ color: "var(--text-muted)" }}>
-              Files ({files.length})
-            </p>
-            <button
-              onClick={() => setActiveFile(null)}
-              className={clsx(
-                "w-full text-left rounded px-2 py-1.5 text-[11px] transition-colors flex items-center justify-between gap-1.5",
-              )}
-              style={activeFile === null ? 
-                { background: "var(--accent-dim)", color: "var(--accent)" } : 
-                { color: "var(--text-secondary)" }
-              }
-            >
-              <span className="flex items-center gap-1.5 min-w-0">
-                <FileCode size={11} className="flex-shrink-0" />
-                <span>All files</span>
-              </span>
-              <span className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-                {review.comments.length}
-              </span>
-            </button>
-            {files.map((file) => {
-              const fileComments = review.comments.filter((c) => c.filePath === file);
-              return (
-                <button
-                  key={file}
-                  onClick={() => setActiveFile(file)}
-                  className={clsx(
-                    "w-full text-left rounded px-2 py-1.5 text-[11px] transition-colors flex items-center justify-between gap-1.5",
-                  )}
-                  style={activeFile === file ? 
-                    { background: "var(--accent-dim)", color: "var(--accent)" } : 
-                    { color: "var(--text-secondary)" }
-                  }
-                >
-                  <span className="flex items-center gap-1.5 min-w-0">
-                    <FileCode size={11} className="flex-shrink-0" />
-                    <span className="truncate code-font">{file.split("/").pop()}</span>
-                  </span>
-                  <span className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-                    {fileComments.length}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Comments */}
-          <div className="xl:col-span-3 space-y-2">
-            {/* Search and filters */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              {activeFile && (
-                <div className="flex items-center gap-1.5 px-1">
-                  <FileCode size={12} style={{ color: "var(--accent)" }} />
-                  <span className="text-[11px] code-font" style={{ color: "var(--text-primary)" }}>{activeFile}</span>
-                </div>
-              )}
-              <div className="flex-1 sm:ml-auto flex items-center gap-2">
-                <div className="relative flex-1 max-w-[200px]">
-                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-7 pr-6 py-1.5 text-[11px] rounded-md border bg-[var(--bg-secondary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                    style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
-                    aria-label="Search comments"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2"
-                      style={{ color: "var(--text-muted)" }}
-                      aria-label="Clear search"
-                    >
-                      <X size={11} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Severity chips */}
-            <div className="flex flex-wrap gap-1">
-              <button
-                onClick={() => setActiveSeverity(null)}
-                className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded transition-colors"
-                style={activeSeverity === null ? 
-                  { background: "var(--accent-dim)", color: "var(--accent)" } : 
-                  { color: "var(--text-muted)" }
-                }
-              >
-                All ({review.comments.filter((c) => activeFile ? c.filePath === activeFile : true).length})
-              </button>
-              {SEVERITY_ORDER.filter((sev) => severityCounts[sev] > 0).map((sev) => {
-                const cfg = SEVERITY_CONFIG[sev];
-                const count = activeFile
-                  ? review.comments.filter((c) => c.filePath === activeFile && c.severity === sev).length
-                  : severityCounts[sev];
-                return (
-                  <button
-                    key={sev}
-                    onClick={() => setActiveSeverity(activeSeverity === sev ? null : sev)}
-                    className={clsx(
-                      "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded transition-colors",
-                      activeSeverity === sev ? cfg.badgeClass : ""
-                    )}
-                    style={activeSeverity !== sev ? { color: "var(--text-muted)" } : undefined}
-                  >
-                    {cfg.icon} {cfg.label} ({count})
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Results count */}
-            {(searchQuery || activeSeverity) && (
-              <p className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
-                {filteredComments.length} results
-              </p>
-            )}
-
-            {/* Comments */}
-            {filteredComments.length > 0 ? (
-              filteredComments.map((comment) => (
-                <CommentCard key={comment.id} comment={comment} />
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>No matching comments</p>
-                <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>Try adjusting your filters.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="panel flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: "rgba(52,211,153,0.1)" }}>
-            <span className="text-lg">✓</span>
-          </div>
-          <p className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>Looks clean</p>
-          <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>No issues found in this pull request.</p>
-        </div>
-      )}
+  if (error) return (
+    <div className="flex flex-col items-center justify-center h-full gap-3">
+      <AlertCircle size={20} style={{ color: "var(--status-critical)" }} />
+      <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{error}</p>
+      <Link to="/reviews" className="text-[10px] underline" style={{ color: "var(--accent)" }}>← Back</Link>
     </div>
   );
-}
-
-function CommentCard({ comment }: { comment: Comment }) {
-  const cfg = SEVERITY_CONFIG[comment.severity] ?? SEVERITY_CONFIG.info;
 
   return (
-    <div className="panel p-3">
-      <div className="flex items-center gap-2 mb-2">
-        <span className={cfg.badgeClass}>
-          {cfg.icon} {cfg.label}
-        </span>
-        {comment.lineNumber && (
-          <span className="text-[10px] code-font px-1.5 py-0.5 rounded" style={{ background: "var(--bg-secondary)", color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}>
-            L{comment.lineNumber}
-          </span>
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header bar */}
+      <div className="flex items-center gap-3 h-10 px-4 border-b flex-shrink-0" style={{ borderColor: "var(--border-subtle)" }}>
+        <Link to="/reviews" className="p-0.5" style={{ color: "var(--text-muted)" }} aria-label="Back"><ChevronLeft size={14} /></Link>
+        {loading ? <div className="skeleton h-4 w-40" /> : data && (
+          <>
+            <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+              <GitPullRequest size={10} style={{ color: "var(--accent)" }} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-medium truncate" style={{ color: "var(--text-primary)" }}>{data.prTitle ?? `PR #${data.prNumber}`}</p>
+              <p className="text-[9px] code-font" style={{ color: "var(--text-muted)" }}>{data.repoFullName} · {format(new Date(data.createdAt), "MMM d, HH:mm")}</p>
+            </div>
+            <span className={`badge-${data.status}`}>{data.status}</span>
+            <span className="text-[10px] code-font tabular-nums" style={{ color: "var(--text-muted)" }}>{data.comments.length} comments · {fileGroups.length} files</span>
+          </>
         )}
-        <span className="text-[10px] code-font truncate ml-auto" style={{ color: "var(--text-muted)" }}>
-          {comment.filePath}
-        </span>
       </div>
-      <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-        {comment.body}
-      </p>
+
+      {/* Body: split pane */}
+      {loading ? (
+        <div className="flex-1 p-4 space-y-2">
+          {[1,2,3,4].map(i => <div key={i} className="skeleton h-12 w-full" />)}
+        </div>
+      ) : data && (
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left: file tree */}
+          <div className="w-56 border-r flex flex-col overflow-hidden flex-shrink-0 hidden md:flex" style={{ borderColor: "var(--border-subtle)" }}>
+            <div className="px-3 py-2 border-b flex items-center gap-1.5" style={{ borderColor: "var(--border-subtle)" }}>
+              <FileCode size={10} style={{ color: "var(--text-muted)" }} />
+              <span className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Files</span>
+              <span className="text-[9px] code-font ml-auto" style={{ color: "var(--border)" }}>{fileGroups.length}</span>
+            </div>
+            <div className="flex-1 overflow-auto divide-y" style={{ borderColor: "var(--border-subtle)" }}>
+              <button
+                onClick={() => setActiveFile(null)}
+                className="w-full text-left px-3 py-2 transition-colors"
+                style={activeFile === null ? { background: "var(--accent-dim)" } : undefined}
+              >
+                <span className="text-[10px] font-medium" style={{ color: activeFile === null ? "var(--accent)" : "var(--text-primary)" }}>All files</span>
+                <span className="text-[9px] code-font ml-1" style={{ color: "var(--text-muted)" }}>{data.comments.length}</span>
+              </button>
+              {fileGroups.map(fc => (
+                <button key={fc.filePath}
+                  onClick={() => setActiveFile(fc.filePath)}
+                  className="w-full text-left px-3 py-2 transition-colors"
+                  style={activeFile === fc.filePath ? { background: "var(--accent-dim)" } : undefined}
+                >
+                  <span className="text-[10px] font-medium truncate block" style={{ color: activeFile === fc.filePath ? "var(--accent)" : "var(--text-primary)" }}>{fc.filePath}</span>
+                  <span className="text-[8px] code-font" style={{ color: "var(--border)" }}>{fc.comments.length} comments</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: comments signal strip */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Severity filter */}
+            <div className="flex items-center gap-1 h-8 px-3 border-b flex-shrink-0" style={{ borderColor: "var(--border-subtle)" }}>
+              <span className="text-[9px] font-semibold uppercase tracking-widest mr-1" style={{ color: "var(--text-muted)" }}>Filter</span>
+              {["all", "bug", "security", "improvement", "style", "info"].map(sev => (
+                <button key={sev}
+                  onClick={() => setSeverityFilter(sev === "all" ? null : sev)}
+                  className="text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded transition-colors"
+                  style={((sev === "all" && !severityFilter) || severityFilter === sev)
+                    ? { color: sev === "all" ? "var(--accent)" : SEV[sev]?.color, background: sev === "all" ? "var(--accent-dim)" : SEV[sev]?.bg }
+                    : { color: "var(--text-muted)" }
+                  }
+                >
+                  {sev}
+                </button>
+              ))}
+            </div>
+
+            {/* Comments list */}
+            <div className="flex-1 overflow-auto divide-y" style={{ borderColor: "var(--border-subtle)" }}>
+              {visibleComments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-2 text-center p-4">
+                  <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+                    <FileCode size={14} style={{ color: "var(--accent)" }} />
+                  </div>
+                  <p className="text-[10px] font-semibold" style={{ color: "var(--text-primary)" }}>No comments</p>
+                  <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>This review has no comments for the selected filter.</p>
+                </div>
+              ) : (
+                visibleComments.map(c => {
+                  const sev = SEV[c.severity] ?? SEV.info;
+                  return (
+                    <div key={c.id} className="px-4 py-3 hover:bg-[var(--bg-card-hover)] transition-colors">
+                      <div className="flex items-start gap-2">
+                        <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ background: sev.color }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: sev.color, background: sev.bg }}>
+                              {c.severity}
+                            </span>
+                            <span className="text-[9px] code-font" style={{ color: "var(--text-muted)" }}>{c.filePath}:{c.lineNumber}</span>
+                          </div>
+                          <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-primary)" }}>{c.body}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
