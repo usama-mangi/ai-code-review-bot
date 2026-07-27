@@ -62,44 +62,42 @@ export function Repositories() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--accent)" }} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 lg:p-10">
-      <div className="mb-8">
-        <div className="flex items-center justify-between w-full mb-3">
-          <div className="flex items-center gap-3">
-            <Settings className="w-8 h-8 text-brand-400" />
-            <h1 className="text-3xl font-bold text-white">
-              Repositories
-            </h1>
+    <div className="max-w-3xl mx-auto p-5">
+      <div className="mb-6">
+        <div className="flex items-center justify-between w-full mb-2">
+          <div className="flex items-center gap-2.5">
+            <Settings className="w-5 h-5" style={{ color: "var(--accent)" }} />
+            <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Repositories</h1>
           </div>
           
           <a 
             href="https://github.com/apps/code-qa-review-bot" 
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20"
-            style={{ background: "var(--accent)" }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-md transition-colors border"
+            style={{ background: "var(--accent)", color: "var(--bg-primary)", borderColor: "var(--accent)" }}
           >
-            Install App <ExternalLink size={15} />
+            Install App <ExternalLink size={11} />
           </a>
         </div>
-        <p style={{ color: "var(--text-secondary)" }}>
-          Manage which repositories the AI Code Review Bot monitors. The bot will only review pull requests for enabled repositories.
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+          Manage which repositories the bot monitors. It will only review pull requests for enabled repos.
         </p>
         
         {error && (
-          <div className="mt-4 p-4 border border-red-500/30 bg-red-500/10 rounded-xl flex items-start gap-3 text-red-400">
-            <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="mt-3 p-3 border rounded-md flex items-start gap-2.5" style={{ borderColor: "rgba(248,113,113,0.3)", background: "rgba(248,113,113,0.06)", color: "var(--status-critical)" }}>
+            <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm">{error}</p>
+              <p className="text-xs">{error}</p>
               <button
                 onClick={fetchRepositories}
-                className="mt-2 text-xs font-medium text-red-300 hover:text-red-200 underline underline-offset-2"
+                className="mt-1.5 text-[10px] font-semibold underline underline-offset-2"
               >
                 Try again
               </button>
@@ -108,48 +106,53 @@ export function Repositories() {
         )}
       </div>
 
-      <div className="card">
+      <div className="panel">
         {repositories.length === 0 && !error ? (
-          <div className="p-12 text-center flex flex-col items-center">
-            <div className="w-14 h-14 rounded-2xl bg-brand-600/10 flex items-center justify-center mb-4">
-              <GitMerge size={24} className="text-brand-400" />
+          <div className="p-10 text-center flex flex-col items-center">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: "var(--accent-dim)" }}>
+              <GitMerge size={18} style={{ color: "var(--accent)" }} />
             </div>
-            <p className="text-lg font-medium text-white">No repositories found</p>
-            <p className="text-sm mt-2 max-w-sm" style={{ color: "var(--text-muted)" }}>
-              You haven't installed the GitHub App on any repositories yet, or you don't have access to them.
+            <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>No repositories found</p>
+            <p className="text-[11px] max-w-xs mb-4" style={{ color: "var(--text-muted)" }}>
+              You haven't installed the GitHub App on any repositories yet.
             </p>
             <a 
               href="https://github.com/apps/code-qa-review-bot" 
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"
-              style={{ background: "var(--accent)" }}
+              className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-md"
+              style={{ background: "var(--accent)", color: "var(--bg-primary)" }}
             >
-              Install App on GitHub
+              Install on GitHub
             </a>
           </div>
         ) : (
-          <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
-            {repositories.map((repo) => (
-              <li key={repo.githubId} className="flex items-center justify-between p-4 sm:p-5 transition-colors" style={{ ["--hover-bg" as any]: "var(--bg-card-hover)" }}>
-                <div className="flex items-center gap-4">
+          <ul>
+            {repositories.map((repo, i) => (
+              <li 
+                key={repo.githubId} 
+                className="flex items-center justify-between px-4 py-3 transition-colors"
+                style={{ borderBottom: i < repositories.length - 1 ? "1px solid var(--border-subtle)" : undefined }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-card-hover)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              >
+                <div className="flex items-center gap-3">
                   <div 
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border"
+                    className="flex h-8 w-8 items-center justify-center rounded-md"
                     style={{ 
-                      background: repo.enabled ? "var(--accent-glow)" : "var(--bg-secondary)", 
-                      borderColor: repo.enabled ? "rgba(99, 102, 241, 0.2)" : "var(--border-subtle)",
+                      background: repo.enabled ? "var(--accent-dim)" : "var(--bg-secondary)",
                       color: repo.enabled ? "var(--accent)" : "var(--text-muted)" 
                     }}
                   >
-                    <GitMerge size={20} />
+                    <GitMerge size={16} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg" style={{ color: repo.enabled ? "var(--text-primary)" : "var(--text-secondary)" }}>
+                    <h3 className="text-xs font-semibold" style={{ color: repo.enabled ? "var(--text-primary)" : "var(--text-secondary)" }}>
                       {repo.fullName}
                     </h3>
-                    <p className="text-xs flex items-center gap-1.5 mt-0.5" style={{ color: "var(--text-muted)" }}>
-                      <Shield size={12} className={repo.enabled ? "text-green-400" : ""} style={!repo.enabled ? { color: "var(--text-muted)" } : undefined} />
-                      {repo.enabled ? "Active code reviews enabled" : "Code reviews disabled"}
+                    <p className="text-[10px] flex items-center gap-1 mt-0.5" style={{ color: "var(--text-muted)" }}>
+                      <Shield size={10} style={{ color: repo.enabled ? "var(--status-ok)" : undefined }} />
+                      {repo.enabled ? "Active" : "Disabled"}
                     </p>
                   </div>
                 </div>
@@ -159,7 +162,7 @@ export function Repositories() {
                   aria-checked={repo.enabled}
                   aria-label={`${repo.enabled ? "Disable" : "Enable"} code reviews for ${repo.fullName}`}
                   onClick={() => toggleRepository(repo)}
-                  className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                  className="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2"
                   style={{ 
                     background: repo.enabled ? "var(--accent)" : "var(--border)",
                     ["--tw-ring-offset-color" as any]: "var(--bg-card)"
@@ -167,8 +170,8 @@ export function Repositories() {
                 >
                   <span
                     aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      repo.enabled ? "translate-x-5" : "translate-x-0"
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      repo.enabled ? "translate-x-4" : "translate-x-0"
                     }`}
                   />
                 </button>

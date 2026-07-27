@@ -17,23 +17,22 @@ import {
 } from "recharts";
 import { apiClient, type Stats, type Review, type PerformanceMetrics } from "../api/client";
 import { format } from "date-fns";
-import { GitPullRequest, MessageSquare, AlertTriangle, TrendingUp, Clock, BarChart3, Activity, AlertCircle, RefreshCw } from "lucide-react";
-import clsx from "clsx";
+import { GitPullRequest, AlertCircle, RefreshCw } from "lucide-react";
 
 const SEVERITY_COLORS: Record<string, string> = {
   bug: "#f87171",
   security: "#fb923c",
-  improvement: "#facc15",
+  improvement: "#fbbf24",
   style: "#60a5fa",
-  info: "#94a3b8",
+  info: "#a0a0b4",
 };
 
-const SEVERITY_EMOJI: Record<string, string> = {
-  bug: "🐛",
-  security: "🔒",
-  improvement: "💡",
-  style: "🎨",
-  info: "ℹ️",
+const SEVERITY_LABELS: Record<string, string> = {
+  bug: "Bug",
+  security: "Security",
+  improvement: "Improve",
+  style: "Style",
+  info: "Info",
 };
 
 export function Dashboard() {
@@ -81,313 +80,338 @@ export function Dashboard() {
 
   if (error && !loading) {
     return (
-      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
-          <AlertCircle size={28} className="text-red-400" />
+      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(248,113,113,0.1)" }}>
+          <AlertCircle size={22} style={{ color: "var(--status-critical)" }} />
         </div>
-        <h2 className="text-lg font-semibold text-white mb-2">Something went wrong</h2>
-        <p className="text-sm text-center max-w-sm mb-6" style={{ color: "var(--text-secondary)" }}>
-          {error}
-        </p>
-        <button onClick={fetchData} className="btn-primary gap-2">
-          <RefreshCw size={14} /> Try Again
+        <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Something went wrong</p>
+        <p className="text-xs text-center max-w-xs mb-4" style={{ color: "var(--text-muted)" }}>{error}</p>
+        <button onClick={fetchData} className="btn-primary gap-1.5">
+          <RefreshCw size={12} /> Try Again
         </button>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="p-5 space-y-4">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p style={{ color: "var(--text-secondary)" }} className="text-sm mt-1">
-          AI code review activity overview
-        </p>
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Dashboard</h1>
+          <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>Review activity overview</p>
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--status-ok)" }} />
+          System Online
+        </div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Reviews"
+      {/* Primary Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <PrimaryStat
+          label="Reviews"
           value={stats?.totalReviews ?? 0}
-          icon={<GitPullRequest size={18} className="text-brand-400" />}
           loading={loading}
-          color="brand"
         />
-        <StatCard
-          label="Total Comments"
+        <PrimaryStat
+          label="Comments"
           value={stats?.totalComments ?? 0}
-          icon={<MessageSquare size={18} className="text-emerald-400" />}
           loading={loading}
-          color="emerald"
         />
-        <StatCard
-          label="Avg Comments / PR"
+        <PrimaryStat
+          label="Avg / PR"
           value={stats?.avgCommentsPerReview ?? 0}
-          icon={<TrendingUp size={18} className="text-yellow-400" />}
           loading={loading}
-          color="yellow"
+          format={(v) => v.toFixed(1)}
         />
-        <StatCard
-          label="Bugs Found"
+        <PrimaryStat
+          label="Bugs"
           value={stats?.severityBreakdown?.bug ?? 0}
-          icon={<AlertTriangle size={18} className="text-red-400" />}
           loading={loading}
-          color="red"
+          accent
         />
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
         {/* Line Chart */}
-        <div className="card xl:col-span-2">
-          <h2 className="text-sm font-semibold text-white mb-4">Reviews Over Time (30 days)</h2>
-          {loading ? (
-            <div className="skeleton h-48 w-full" />
-          ) : chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="date" tick={{ fill: "var(--text-muted)", fontSize: 11 }} />
-                <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    color: "var(--text-primary)",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="reviews"
-                  stroke="#6366f1"
-                  strokeWidth={2}
-                  dot={{ fill: "#6366f1", r: 4 }}
-                  activeDot={{ r: 6, fill: "#818cf8" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyState
-              title="No review data yet"
-              message="Install the GitHub App on a repository and open a pull request to start seeing review activity here."
-              linkTo="/repositories"
-              linkText="Set up repositories"
-            />
-          )}
+        <div className="panel xl:col-span-2">
+          <div className="panel-header">
+            <span>Reviews Over Time</span>
+            <span style={{ color: "var(--border)" }}>30d</span>
+          </div>
+          <div className="p-4">
+            {loading ? (
+              <div className="skeleton h-40 w-full" />
+            ) : chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
+                  <XAxis dataKey="date" tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "IBM Plex Mono" }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "IBM Plex Mono" }} tickLine={false} axisLine={false} width={30} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 6,
+                      color: "var(--text-primary)",
+                      fontSize: 12,
+                      fontFamily: "IBM Plex Mono",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="reviews"
+                    stroke="var(--accent)"
+                    strokeWidth={1.5}
+                    dot={false}
+                    activeDot={{ r: 3, fill: "var(--accent)" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState
+                title="No review data yet"
+                message="Install the bot on a repository and open a PR to start seeing activity."
+                linkTo="/repositories"
+                linkText="Set up repos"
+              />
+            )}
+          </div>
         </div>
 
         {/* Pie Chart */}
-        <div className="card">
-          <h2 className="text-sm font-semibold text-white mb-4">Comment Severity</h2>
-          {loading ? (
-            <div className="skeleton h-48 w-full" />
-          ) : pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {pieData.map((entry) => (
-                    <Cell
-                      key={entry.name}
-                      fill={SEVERITY_COLORS[entry.name] ?? "#6366f1"}
-                    />
-                  ))}
-                </Pie>
-                <Legend
-                  formatter={(value) =>
-                    `${SEVERITY_EMOJI[value] ?? ""} ${value}`
-                  }
-                  wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    color: "var(--text-primary)",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyState
-              title="No comments yet"
-              message="Comments from AI reviews will appear here with severity breakdowns."
-            />
-          )}
+        <div className="panel">
+          <div className="panel-header">
+            <span>Severity Distribution</span>
+          </div>
+          <div className="p-4">
+            {loading ? (
+              <div className="skeleton h-40 w-full" />
+            ) : pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={70}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {pieData.map((entry) => (
+                      <Cell
+                        key={entry.name}
+                        fill={SEVERITY_COLORS[entry.name] ?? "var(--text-muted)"}
+                      />
+                    ))}
+                  </Pie>
+                  <Legend
+                    formatter={(value) => SEVERITY_LABELS[value] ?? value}
+                    wrapperStyle={{ fontSize: 11, fontFamily: "IBM Plex Sans" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 6,
+                      color: "var(--text-primary)",
+                      fontSize: 12,
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState
+                title="No comments yet"
+                message="Comments from AI reviews will appear here."
+              />
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Performance Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
+      {/* Performance Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MetricStat
           label="Avg Review Time"
           value={perfMetrics?.avgReviewTime?.avgSeconds ?? 0}
-          icon={<Clock size={18} className="text-blue-400" />}
+          suffix="s"
           loading={loading}
-          color="blue"
-          format={(v) => `${v}s`}
         />
-        <StatCard
+        <MetricStat
           label="Error Rate"
           value={perfMetrics?.errorRatePct ?? 0}
-          icon={<AlertTriangle size={18} className="text-orange-400" />}
+          suffix="%"
           loading={loading}
-          color="orange"
-          format={(v) => `${v}%`}
+          warn={(perfMetrics?.errorRatePct ?? 0) > 5}
         />
-        <StatCard
-          label="Failed Reviews"
+        <MetricStat
+          label="Failed"
           value={perfMetrics?.statusCounts?.failed ?? 0}
-          icon={<Activity size={18} className="text-red-400" />}
           loading={loading}
-          color="red"
+          warn={(perfMetrics?.statusCounts?.failed ?? 0) > 0}
         />
-        <StatCard
-          label="Repos Tracked"
+        <MetricStat
+          label="Repos"
           value={perfMetrics?.byRepo?.length ?? 0}
-          icon={<BarChart3 size={18} className="text-green-400" />}
           loading={loading}
-          color="green"
         />
       </div>
 
-      {/* Weekly Trend Chart */}
+      {/* Weekly Trend */}
       {perfMetrics && perfMetrics.weeklyTrend.length > 0 && (
-        <div className="card">
-          <h2 className="text-sm font-semibold text-white mb-4">Weekly Review Trend (12 weeks)</h2>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart
-              data={perfMetrics.weeklyTrend.map((d) => ({
+        <div className="panel">
+          <div className="panel-header">
+            <span>Weekly Trend</span>
+            <span style={{ color: "var(--border)" }}>12w</span>
+          </div>
+          <div className="p-4">
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={perfMetrics.weeklyTrend.map((d) => ({
                 week: format(new Date(d.week), "MMM d"),
                 reviews: d.count,
-              }))}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="week" tick={{ fill: "var(--text-muted)", fontSize: 10 }} />
-              <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} />
-              <Tooltip
-                contentStyle={{
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 8,
-                  color: "var(--text-primary)",
-                }}
-              />
-              <Bar dataKey="reviews" fill="#6366f1" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+              }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                <XAxis dataKey="week" tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "IBM Plex Mono" }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "IBM Plex Mono" }} tickLine={false} axisLine={false} width={30} />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 6,
+                    color: "var(--text-primary)",
+                    fontSize: 12,
+                  }}
+                />
+                <Bar dataKey="reviews" fill="var(--accent)" radius={[2, 2, 0, 0]} opacity={0.8} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
       {/* Recent Reviews */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white">Recent Reviews</h2>
-          <Link to="/reviews" className="text-xs text-brand-400 hover:text-brand-300 transition-colors">
-            View all →
+      <div className="panel">
+        <div className="panel-header">
+          <span>Recent Reviews</span>
+          <Link to="/reviews" className="text-[10px] font-semibold uppercase tracking-wider transition-colors" style={{ color: "var(--accent)" }}>
+            View All →
           </Link>
         </div>
         {loading ? (
-          <div className="space-y-3">
+          <div className="p-4 space-y-2">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="skeleton h-14 w-full rounded-lg" />
+              <div key={i} className="skeleton h-10 w-full rounded" />
             ))}
           </div>
         ) : recentReviews.length > 0 ? (
-          <div className="space-y-2">
+          <div>
             {recentReviews.map((review) => (
               <ReviewRow key={review.id} review={review} />
             ))}
           </div>
         ) : (
-          <EmptyState
-            title="No reviews yet"
-            message="Install the GitHub App on your repository, then open a pull request. The bot will automatically review it and post comments here."
-            linkTo="/repositories"
-            linkText="Install the GitHub App"
-          />
+          <div className="p-8">
+            <EmptyState
+              title="No reviews yet"
+              message="Install the bot on a repository and open a PR."
+              linkTo="/repositories"
+              linkText="Install App"
+            />
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function StatCard({
+function PrimaryStat({
   label,
   value,
-  icon,
   loading,
-  color,
   format: formatFn,
+  accent,
 }: {
   label: string;
   value: number;
-  icon: React.ReactNode;
   loading: boolean;
-  color: string;
   format?: (v: number) => string;
+  accent?: boolean;
 }) {
-  const glowMap: Record<string, string> = {
-    brand: "shadow-brand-600/10",
-    emerald: "shadow-emerald-600/10",
-    yellow: "shadow-yellow-600/10",
-    red: "shadow-red-600/10",
-    blue: "shadow-blue-600/10",
-    orange: "shadow-orange-600/10",
-    green: "shadow-green-600/10",
-  };
-
   return (
-    <div className={clsx("stat-card shadow-lg", glowMap[color])}>
-      <div className="flex items-center justify-between">
-        <span className="stat-label">{label}</span>
-        <div className="p-2 rounded-lg" style={{ background: "var(--bg-secondary)" }}>
-          {icon}
-        </div>
-      </div>
+    <div className="stat-card">
+      <span className="stat-label">{label}</span>
       {loading ? (
-        <div className="skeleton h-8 w-24" />
+        <div className="skeleton h-7 w-16 mt-1" />
       ) : (
-        <span className="stat-value">{formatFn ? formatFn(value) : value.toLocaleString()}</span>
+        <span className="stat-value" style={accent ? { color: "var(--status-critical)" } : undefined}>
+          {formatFn ? formatFn(value) : value.toLocaleString()}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function MetricStat({
+  label,
+  value,
+  suffix,
+  loading,
+  warn,
+}: {
+  label: string;
+  value: number;
+  suffix?: string;
+  loading: boolean;
+  warn?: boolean;
+}) {
+  return (
+    <div className="stat-card">
+      <span className="stat-label">{label}</span>
+      {loading ? (
+        <div className="skeleton h-6 w-12 mt-1" />
+      ) : (
+        <span className="text-lg font-bold tabular-nums" style={{ 
+          fontFamily: "IBM Plex Mono", 
+          color: warn ? "var(--status-warn)" : "var(--text-primary)",
+          letterSpacing: "-0.02em"
+        }}>
+          {value.toLocaleString()}{suffix}
+        </span>
       )}
     </div>
   );
 }
 
 function ReviewRow({ review }: { review: Review }) {
-  const statusClass = `badge-${review.status}`;
   return (
     <Link
       to={`/reviews/${review.id}`}
-      className="flex items-center justify-between rounded-lg p-3 transition-all duration-150 hover:bg-[var(--bg-card-hover)] group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-[var(--bg-card)]"
+      className="flex items-center justify-between px-4 py-2.5 transition-colors border-b last:border-b-0"
+      style={{ borderColor: "var(--border-subtle)" }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-card-hover)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
     >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-600/15 flex items-center justify-center">
-          <GitPullRequest size={14} className="text-brand-400" />
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+          <GitPullRequest size={12} style={{ color: "var(--accent)" }} />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-medium text-white truncate group-hover:text-brand-300 transition-colors">
+          <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
             {review.prTitle ?? `PR #${review.prNumber}`}
           </p>
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {review.repoFullName} · #{review.prNumber}
+          <p className="text-[10px] code-font truncate" style={{ color: "var(--text-muted)" }}>
+            {review.repoFullName} #{review.prNumber}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0 ml-3">
-        <span className={statusClass}>{review.status}</span>
-        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+        <span className={`badge-${review.status}`}>{review.status}</span>
+        <span className="text-[10px] code-font" style={{ color: "var(--text-muted)" }}>
           {format(new Date(review.createdAt), "MMM d")}
         </span>
       </div>
@@ -407,18 +431,17 @@ function EmptyState({
   linkText?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-10 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-brand-600/10 flex items-center justify-center mb-4">
-        <GitPullRequest size={24} className="text-brand-400" />
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: "var(--accent-dim)" }}>
+        <GitPullRequest size={18} style={{ color: "var(--accent)" }} />
       </div>
-      <p className="text-sm font-medium text-white mb-1">{title}</p>
-      <p className="text-xs max-w-xs" style={{ color: "var(--text-muted)" }}>
-        {message}
-      </p>
+      <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{title}</p>
+      <p className="text-[11px] max-w-[240px]" style={{ color: "var(--text-muted)" }}>{message}</p>
       {linkTo && linkText && (
         <Link
           to={linkTo}
-          className="mt-4 text-xs font-medium text-brand-400 hover:text-brand-300 transition-colors"
+          className="mt-3 text-[11px] font-semibold uppercase tracking-wider transition-colors"
+          style={{ color: "var(--accent)" }}
         >
           {linkText} →
         </Link>

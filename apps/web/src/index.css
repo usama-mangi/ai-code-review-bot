@@ -1,20 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #111118;
-    --bg-card: #16161f;
-    --bg-card-hover: #1c1c28;
-    --border: #2a2a3a;
-    --border-subtle: #1e1e2e;
-    --text-primary: #e8e8f0;
-    --text-secondary: #9090a8;
-    --text-muted: #7a7a96;
-    --accent: #6366f1;
-    --accent-glow: rgba(99, 102, 241, 0.15);
+    --bg-primary: #0c0c10;
+    --bg-secondary: #131318;
+    --bg-card: #18181f;
+    --bg-card-hover: #1e1e27;
+    --bg-elevated: #22222c;
+    --border: #2a2a36;
+    --border-subtle: #1f1f2a;
+    --text-primary: #e8e8ef;
+    --text-secondary: #a0a0b4;
+    --text-muted: #6a6a82;
+    --accent: #e5a530;
+    --accent-dim: rgba(229, 165, 48, 0.12);
+    --accent-glow: rgba(229, 165, 48, 0.08);
+    --status-ok: #34d399;
+    --status-warn: #fbbf24;
+    --status-critical: #f87171;
+    --status-info: #60a5fa;
+    --status-muted: #6a6a82;
   }
 
   * {
@@ -30,20 +39,21 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: "Inter", system-ui, sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: 0.01em;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -57,96 +67,169 @@
 }
 
 @layer components {
-  .card {
-    @apply rounded-xl border bg-[var(--bg-card)] border-[var(--border)] p-5 transition-all duration-200;
+  .panel {
+    @apply rounded-lg border;
+    background: var(--bg-card);
+    border-color: var(--border);
   }
 
-  .card:hover {
-    background-color: var(--bg-card-hover);
-    border-color: #3a3a50;
+  .panel-header {
+    @apply flex items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-widest;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider;
   }
 
   .badge-bug {
-    @apply badge bg-red-500/15 text-red-400 border border-red-500/20;
+    @apply badge;
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--status-critical);
   }
 
   .badge-security {
-    @apply badge bg-orange-500/15 text-orange-400 border border-orange-500/20;
+    @apply badge;
+    background: rgba(251, 146, 60, 0.12);
+    color: #fb923c;
   }
 
   .badge-improvement {
-    @apply badge bg-yellow-500/15 text-yellow-400 border border-yellow-500/20;
+    @apply badge;
+    background: rgba(251, 191, 36, 0.12);
+    color: var(--status-warn);
   }
 
   .badge-style {
-    @apply badge bg-blue-500/15 text-blue-400 border border-blue-500/20;
+    @apply badge;
+    background: rgba(96, 165, 250, 0.12);
+    color: var(--status-info);
   }
 
   .badge-info {
-    @apply badge bg-gray-500/15 text-gray-400 border border-gray-500/20;
+    @apply badge;
+    background: rgba(106, 106, 130, 0.15);
+    color: var(--text-secondary);
   }
 
   .badge-completed {
-    @apply badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20;
+    @apply badge;
+    background: rgba(52, 211, 153, 0.12);
+    color: var(--status-ok);
   }
 
   .badge-pending {
-    @apply badge bg-yellow-500/15 text-yellow-400 border border-yellow-500/20;
+    @apply badge;
+    background: rgba(251, 191, 36, 0.12);
+    color: var(--status-warn);
   }
 
   .badge-processing {
-    @apply badge bg-blue-500/15 text-blue-400 border border-blue-500/20;
+    @apply badge;
+    background: rgba(96, 165, 250, 0.12);
+    color: var(--status-info);
   }
 
   .badge-failed {
-    @apply badge bg-red-500/15 text-red-400 border border-red-500/20;
+    @apply badge;
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--status-critical);
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-all duration-150 hover:bg-brand-500 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)];
+    @apply inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all duration-150;
+    background: var(--accent);
+    color: var(--bg-primary);
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-all duration-150 hover:bg-[var(--bg-card)] hover:text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-brand-500;
+    @apply inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-150;
+    color: var(--text-secondary);
+    background: transparent;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+  }
+
+  .btn-ghost:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .stat-card {
-    @apply card flex flex-col gap-2;
+    @apply panel flex flex-col gap-1 p-4;
   }
 
   .stat-value {
-    @apply text-3xl font-bold text-[var(--text-primary)] tabular-nums;
+    @apply text-2xl font-bold tabular-nums;
+    color: var(--text-primary);
+    font-family: "IBM Plex Mono", monospace;
+    letter-spacing: -0.02em;
   }
 
   .stat-label {
-    @apply text-sm text-[var(--text-secondary)];
+    @apply text-[11px] font-semibold uppercase tracking-widest;
+    color: var(--text-muted);
+  }
+
+  .stat-delta {
+    @apply text-[11px] font-medium;
   }
 
   .code-font {
-    font-family: "JetBrains Mono", "Fira Code", monospace;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
   }
 }
 
-/* Glow effects */
-.glow-accent {
-  box-shadow: 0 0 20px var(--accent-glow);
+/* Status band — top-edge color indicator on cards */
+.status-band {
+  position: relative;
+}
+.status-band::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--band-color, var(--border));
+}
+
+/* Glow ring for active elements */
+.glow-ring {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 12px var(--accent-glow);
 }
 
 /* Skeleton loading */
 .skeleton {
-  @apply animate-pulse rounded bg-[var(--border)];
+  @apply animate-pulse rounded;
+  background: var(--border-subtle);
 }
 
 /* Chart tooltip */
 .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: var(--bg-card) !important;
+  background: var(--bg-elevated) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
-  color: var(--text-primary) !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
 }
 
 /* Reduced motion */
